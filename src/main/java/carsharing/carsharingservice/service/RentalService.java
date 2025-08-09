@@ -9,7 +9,7 @@ public interface RentalService {
 
     List<Rental> findRentalsByUser(Long userId, Boolean isActive);
 
-    Optional<Rental> findRental(Long id);
+    Rental findRentalById(Long id);
 
     Rental returnRental(Long id, Rental rental);
 }

@@ -4,11 +4,11 @@ import carsharing.carsharingservice.model.Payment;
 import java.util.List;
 
 public interface PaymentService {
-    List<Payment> findAll();
+    List<Payment> findAllPayments(Long userId);
 
-    Payment save();
+    Payment savePaymentSession(Payment payment);
 
-    boolean successPayment(String id);
+    String successPayment();
 
     String cancelPayment();
 }

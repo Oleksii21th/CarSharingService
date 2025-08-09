@@ -1,11 +1,12 @@
 package carsharing.carsharingservice.service;
 
+import carsharing.carsharingservice.model.Role;
 import carsharing.carsharingservice.model.User;
 
 public interface UserService {
-    User changeRole(Long id, String newRole);
+    User updateUserRole(Long id, Role role);
 
     User getProfile();
 
-    User updateProfile(User update);
+    User updateProfile(User user);
 }

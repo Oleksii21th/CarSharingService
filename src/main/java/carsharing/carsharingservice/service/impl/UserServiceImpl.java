@@ -1,13 +1,15 @@
 package carsharing.carsharingservice.service.impl;
 
+import carsharing.carsharingservice.model.Role;
 import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.service.UserService;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
+
     @Override
-    public User changeRole(Long id, String newRole) {
+    public User updateUserRole(Long id, Role role) {
         return null;
     }
 
@@ -17,7 +19,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateProfile(User update) {
+    public User updateProfile(User user) {
         return null;
     }
 }

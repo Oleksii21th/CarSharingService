@@ -1,29 +1,36 @@
 package carsharing.carsharingservice.service.impl;
 
 import carsharing.carsharingservice.model.Payment;
+import carsharing.carsharingservice.model.PaymentStatus;
+import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.service.PaymentService;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
-    @Override
-    public List<Payment> findAll() {
-        return List.of();
+    private final PaymentRepository paymentRepository;
+
+    public PaymentServiceImpl(PaymentRepository paymentRepository) {
+        this.paymentRepository = paymentRepository;
+    }
+
+    public List<Payment> findAllPayments(Long userId) {
+        return paymentRepository.findAll();
+    }
+
+    public Payment savePaymentSession(Payment payment) {
+        payment.setStatus(PaymentStatus.PENDING);
+        return paymentRepository.save(payment);
     }
 
     @Override
-    public Payment save() {
-        return null;
-    }
-
-    @Override
-    public boolean successPayment(String id) {
-        return false;
+    public String successPayment() {
+        return "Payment success";
     }
 
     @Override
     public String cancelPayment() {
-        return "";
+        return "Payment canceled";
     }
 }
