@@ -1,5 +1,6 @@
 package carsharing.carsharingservice.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,6 +28,9 @@ public class Rental {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(nullable = false)
+    private boolean isActive = true;
 
     public Long getId() {
         return id;
@@ -74,5 +78,13 @@ public class Rental {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }
