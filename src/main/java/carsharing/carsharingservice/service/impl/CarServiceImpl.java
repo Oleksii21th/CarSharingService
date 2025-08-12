@@ -26,9 +26,13 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public Optional<Car> findById(Long id) {
-        checkCarExistsOrThrowException(id);
-        return repository.findById(id);
+    public Car findById(Long id) {
+        Optional<Car> carOptional = repository.findById(id);
+        if (carOptional.isEmpty()) {
+            throw new RuntimeException("Car not found with id: " + id);
+        }
+
+        return carOptional.get();
     }
 
     @Override

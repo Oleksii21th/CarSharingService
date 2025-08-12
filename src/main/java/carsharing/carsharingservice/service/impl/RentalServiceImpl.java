@@ -23,6 +23,7 @@ public class RentalServiceImpl implements RentalService {
 
     @Override
     public Rental save(Rental rental) {
+    /** TODO: adding functionality for decreasing inventory of car**/
         return rentalRepository.save(rental);
     }
 
@@ -32,8 +33,12 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public Optional<Rental> findRental(Long id) {
-        return rentalRepository.findById(id);
+    public Rental findRentalById(Long id) {
+        Optional<Rental> rentalOptional = rentalRepository.findById(id);
+        if (rentalOptional.isEmpty()) {
+            throw new RuntimeException("Rental not found with id: " + id);
+        }
+        return rentalOptional.get();
     }
 
     @Override

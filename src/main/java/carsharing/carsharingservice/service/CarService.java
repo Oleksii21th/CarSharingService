@@ -9,7 +9,7 @@ public interface CarService {
 
     List<Car> findAll();
 
-    Optional<Car> findById(Long id);
+    Car findById(Long id);
 
     Car updateCar(Long id, Car update);
 
