@@ -8,8 +8,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.math.BigDecimal;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 @Entity
+@Where(clause = "is_deleted = false")
+@SQLDelete(sql = "UPDATE cars SET is_deleted = true WHERE id = ?")
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +30,9 @@ public class Car {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal dailyFee;
+
+    @Column(nullable = false)
+    private boolean isDeleted = false;
 
     public Long getId() {
         return id;
