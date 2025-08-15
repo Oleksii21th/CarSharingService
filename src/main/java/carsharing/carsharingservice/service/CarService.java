@@ -2,7 +2,6 @@ package carsharing.carsharingservice.service;
 
 import carsharing.carsharingservice.model.Car;
 import java.util.List;
-import java.util.Optional;
 
 public interface CarService {
     Car save(Car car);

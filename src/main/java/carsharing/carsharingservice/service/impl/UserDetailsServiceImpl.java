@@ -1,24 +1,22 @@
-package carsharing.carsharingservice.security;
+package carsharing.carsharingservice.service.impl;
 
 import carsharing.carsharingservice.repository.UserRepository;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-@EnableMethodSecurity
-public class CustomUserDetailsService implements UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
-    public CustomUserDetailsService(UserRepository userRepository) {
+    public UserDetailsServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email).orElseThrow(() ->
-                        new UsernameNotFoundException("Can't find user by email: " + email));
+                new UsernameNotFoundException("Can't find user by email: " + email));
     }
 }

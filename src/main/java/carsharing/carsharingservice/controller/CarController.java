@@ -1,7 +1,6 @@
 package carsharing.carsharingservice.controller;
 
 import carsharing.carsharingservice.model.Car;
-import carsharing.carsharingservice.repository.CarRepository;
 import carsharing.carsharingservice.service.CarService;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
