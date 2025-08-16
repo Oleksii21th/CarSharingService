@@ -2,12 +2,14 @@ package carsharing.carsharingservice.service.impl;
 
 import carsharing.carsharingservice.dto.user.UserRegistrationRequestDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
-import carsharing.carsharingservice.exception.RegistrationException;
+import carsharing.carsharingservice.exception.UserAlreadyExistsException;
+import carsharing.carsharingservice.exception.UserNotFoundException;
 import carsharing.carsharingservice.mapper.UserMapper;
 import carsharing.carsharingservice.model.Role;
 import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.repository.UserRepository;
 import carsharing.carsharingservice.service.UserService;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,9 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    public UserServiceImpl(UserMapper userMapper, BCryptPasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public UserServiceImpl(UserMapper userMapper,
+                           BCryptPasswordEncoder passwordEncoder,
+                           UserRepository userRepository) {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
@@ -30,24 +34,36 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getProfile() {
-        return null;
+    public UserResponseDto getProfile(Authentication authentication) {
+        return userMapper.toDto(getCurrentUserById(authentication));
     }
 
     @Override
-    public User updateProfile(User user) {
-        return null;
+    public UserResponseDto updateProfile(Authentication authentication,
+                                         UserRegistrationRequestDto userDto) {
+        User user = getCurrentUserById(authentication);
+        user.setEmail(userDto.getEmail());
+        user.setLastName(userDto.getLastName());
+        user.setFirstName(userDto.getFirstName());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        return userMapper.toDto(userRepository.save(user));
     }
 
-    public UserResponseDto registerUser(UserRegistrationRequestDto request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RegistrationException(String.format("The user with email %s already exists",
-                    request.getEmail()));
+    @Override
+    public UserResponseDto registerUser(UserRegistrationRequestDto userDto) {
+        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
+            throw new UserAlreadyExistsException(userDto.getEmail());
         }
-        User user = userMapper.toModel(request);
+        User user = userMapper.toModel(userDto);
         user.setRole(DEFAULT_ROLE);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         User savedUser = userRepository.save(user);
         return userMapper.toDto(savedUser);
+    }
+
+    private User getCurrentUserById(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return userRepository.findById(user.getId())
+                .orElseThrow(() -> new UserNotFoundException(user.getId()));
     }
 }

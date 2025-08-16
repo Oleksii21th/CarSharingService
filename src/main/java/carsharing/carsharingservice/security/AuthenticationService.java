@@ -2,7 +2,7 @@ package carsharing.carsharingservice.security;
 
 import carsharing.carsharingservice.dto.user.UserLoginRequestDto;
 import carsharing.carsharingservice.dto.user.UserLoginResponseDto;
-import carsharing.carsharingservice.exception.LoginException;
+import carsharing.carsharingservice.exception.LoginFailedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,7 +27,7 @@ public class AuthenticationService {
             String token = jwtUtil.generateToken(authentication);
             return new UserLoginResponseDto(token);
         } catch (BadCredentialsException ex) {
-            throw new LoginException("Incorrect login or password");
+            throw new LoginFailedException();
         }
     }
 }

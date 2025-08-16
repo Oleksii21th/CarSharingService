@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 @PasswordsMatch(passwordField = "password",
         repeatPasswordField = "repeatPassword",
-        message = "Passwords do not match")
+        message = "Passwords don't match")
 public class UserRegistrationRequestDto {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
