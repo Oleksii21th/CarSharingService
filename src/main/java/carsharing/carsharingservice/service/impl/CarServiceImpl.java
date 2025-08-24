@@ -1,73 +1,65 @@
 package carsharing.carsharingservice.service.impl;
 
+import carsharing.carsharingservice.dto.car.AddCarRequestDto;
+import carsharing.carsharingservice.dto.car.CarResponseDto;
+import carsharing.carsharingservice.exception.CarNotFoundException;
+import carsharing.carsharingservice.mapper.CarMapper;
 import carsharing.carsharingservice.model.Car;
 import carsharing.carsharingservice.repository.CarRepository;
 import carsharing.carsharingservice.service.CarService;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CarServiceImpl implements CarService {
-    private final CarRepository repository;
+    private final CarRepository carRepository;
+    private final CarMapper carMapper;
 
-    public CarServiceImpl(CarRepository repository) {
-        this.repository = repository;
+    public CarServiceImpl(CarRepository carRepository, CarMapper carMapper) {
+        this.carRepository = carRepository;
+        this.carMapper = carMapper;
     }
 
     @Override
-    public Car save(Car car) {
-        return repository.save(car);
+    public CarResponseDto save(AddCarRequestDto dto) {
+        Car car = carMapper.toModel(dto);
+        Car savedCar = carRepository.save(car);
+        return carMapper.toDto(savedCar);
     }
 
     @Override
-    public List<Car> findAll() {
-        return repository.findAll();
+    public List<CarResponseDto> findAll() {
+        return carRepository.findAll().stream()
+                .map(carMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Car findById(Long id) {
-        Optional<Car> carOptional = repository.findById(id);
+    public CarResponseDto findById(Long id) {
+        Optional<Car> carOptional = carRepository.findById(id);
         if (carOptional.isEmpty()) {
-            throw new RuntimeException("Car not found with id: " + id);
+            throw new CarNotFoundException(id);
         }
-
-        return carOptional.get();
+        return carOptional.map(carMapper::toDto).orElse(null);
     }
 
     @Override
-    public Car updateCar(Long id, Car update) {
-        Car car = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Car not found with id: " + id));
+    public CarResponseDto updateCar(Long id, AddCarRequestDto dto) {
+        Car car = carRepository.findById(id)
+                .orElseThrow(() -> new CarNotFoundException(id));
 
-        if (update.getModel() != null) {
-            car.setModel(update.getModel());
-        }
-        if (update.getBrand() != null) {
-            car.setBrand(update.getBrand());
-        }
-        if (update.getType() != null) {
-            car.setType(update.getType());
-        }
-        if (update.getInventory() >= 0) {
-            car.setInventory(update.getInventory());
-        }
-        if (update.getDailyFee() != null) {
-            car.setDailyFee(update.getDailyFee());
-        }
-
-        return repository.save(car);
+        carMapper.updateCarFromDto(dto, car);
+        Car updatedCar = carRepository.save(car);
+        return carMapper.toDto(updatedCar);
     }
 
     @Override
     public void deleteCar(Long id) {
-        checkCarExistsOrThrowException(id);
-        repository.deleteById(id);
-    }
-
-    private void checkCarExistsOrThrowException(Long id) {
-        if (!repository.existsById(id)) {
-            throw new RuntimeException("Car not found with id: " + id);
+        if (!carRepository.existsById(id)) {
+            throw new CarNotFoundException(id);
         }
+        carRepository.deleteById(id);
     }
 }

@@ -21,3 +21,6 @@ databaseChangeLog:
               - column:
                   name: role
                   value: "MANAGER"
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
