@@ -29,7 +29,7 @@ public class RentalServiceImpl implements RentalService {
 
     @Override
     public List<Rental> findRentalsByUser(Long userId, Boolean isActive) {
-        return rentalRepository.findByUserIdAndActive(userId, isActive);
+        return rentalRepository.findByUserIdAndIsActive(userId, isActive);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class RentalServiceImpl implements RentalService {
     @Override
     public Rental returnRental(Long userId, Rental rental) {
         Long rentalId = rental.getId();
-        Rental existingRental  = rentalRepository.findByUserIdAndRentalId(userId, rentalId)
+        Rental existingRental  = rentalRepository.findByUserIdAndId(userId, rentalId)
                 .orElseThrow(() ->
                         new RuntimeException("Rental no found with id " + rentalId));
 

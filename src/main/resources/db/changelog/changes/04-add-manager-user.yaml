@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-manager-user
+      author: Oleksii Babych
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: email
+                  value: "admin@user.com"
+              - column:
+                  name: first_name
+                  value: "Admin"
+              - column:
+                  name: last_name
+                  value: "User"
+              - column:
+                  name: password
+                  value: "$2a$10$Sz5uiheQvuwtNPmBycdnYeRmeVwP.cKSjJeBHs0sRuGLtRbuE3YV6"
+              - column:
+                  name: role
+                  value: "MANAGER"
