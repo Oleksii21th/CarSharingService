@@ -1,16 +1,11 @@
 package carsharing.carsharingservice.controller;
 
-import carsharing.carsharingservice.model.Car;
+import carsharing.carsharingservice.dto.car.AddCarRequestDto;
+import carsharing.carsharingservice.dto.car.CarResponseDto;
 import carsharing.carsharingservice.service.CarService;
+import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/cars")
@@ -22,23 +17,24 @@ public class CarController {
     }
 
     @PostMapping
-    public Car createCar(@RequestBody Car car) {
-        return carService.save(car);
+    public CarResponseDto saveCar(@RequestBody @Valid AddCarRequestDto requestDto) {
+        return carService.save(requestDto);
     }
 
     @GetMapping
-    public List<Car> findAll() {
+    public List<CarResponseDto> findAll() {
         return carService.findAll();
     }
 
     @GetMapping("/{id}")
-    public Car findById(@PathVariable Long id) {
+    public CarResponseDto findById(@PathVariable Long id) {
         return carService.findById(id);
     }
 
     @PatchMapping("/{id}")
-    public Car updateCar(@PathVariable Long id, @RequestBody Car car) {
-        return carService.updateCar(id, car);
+    public CarResponseDto updateCar(@PathVariable Long id,
+                                    @RequestBody @Valid AddCarRequestDto requestDto) {
+        return carService.updateCar(id, requestDto);
     }
 
     @DeleteMapping("/{id}")

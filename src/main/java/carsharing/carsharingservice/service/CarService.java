@@ -1,16 +1,17 @@
 package carsharing.carsharingservice.service;
 
-import carsharing.carsharingservice.model.Car;
+import carsharing.carsharingservice.dto.car.AddCarRequestDto;
+import carsharing.carsharingservice.dto.car.CarResponseDto;
 import java.util.List;
 
 public interface CarService {
-    Car save(Car car);
+    CarResponseDto save(AddCarRequestDto carDto);
 
-    List<Car> findAll();
+    List<CarResponseDto> findAll();
 
-    Car findById(Long id);
+    CarResponseDto findById(Long id);
 
-    Car updateCar(Long id, Car update);
+    CarResponseDto updateCar(Long id, AddCarRequestDto updatedCarDto);
 
     void deleteCar(Long id);
 }
