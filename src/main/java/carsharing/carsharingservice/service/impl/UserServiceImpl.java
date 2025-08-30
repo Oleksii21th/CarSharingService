@@ -2,7 +2,7 @@ package carsharing.carsharingservice.service.impl;
 
 import carsharing.carsharingservice.dto.user.UserRegistrationRequestDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
-import carsharing.carsharingservice.exception.UserAlreadyExistsException;
+import carsharing.carsharingservice.exception.UserAlreadyExistsRegistrationException;
 import carsharing.carsharingservice.exception.UserNotFoundException;
 import carsharing.carsharingservice.mapper.UserMapper;
 import carsharing.carsharingservice.model.Role;
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDto registerUser(UserRegistrationRequestDto userDto) {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new UserAlreadyExistsException(userDto.getEmail());
+            throw new UserAlreadyExistsRegistrationException(userDto.getEmail());
         }
         User user = userMapper.toModel(userDto);
         user.setRole(DEFAULT_ROLE);
