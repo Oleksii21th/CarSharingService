@@ -11,6 +11,7 @@ public class AddCarRequestDto {
     @NotNull
     private String brand;
     @NotNull
+    @ValidCarType
     private String type;
     @NotNull
     private int inventory;
