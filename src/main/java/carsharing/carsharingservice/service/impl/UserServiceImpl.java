@@ -1,7 +1,9 @@
 package carsharing.carsharingservice.service.impl;
 
+import carsharing.carsharingservice.dto.user.RoleUpdateRequestDto;
 import carsharing.carsharingservice.dto.user.UserRegistrationRequestDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
+import carsharing.carsharingservice.dto.user.UserWithRoleResponseDto;
 import carsharing.carsharingservice.exception.UserAlreadyExistsRegistrationException;
 import carsharing.carsharingservice.exception.UserNotFoundException;
 import carsharing.carsharingservice.mapper.UserMapper;
@@ -29,19 +31,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUserRole(Long id, Role role) {
-        return null;
+    public UserWithRoleResponseDto updateUserRole(Long userId,
+                                                  RoleUpdateRequestDto updatedRole) {
+        User user = getUserById(userId);
+        user.setRole(Role.valueOf(updatedRole.role()));
+        userRepository.save(user);
+        return userMapper.toDtoOnlyWithUpdatingRole(user);
     }
 
     @Override
     public UserResponseDto getProfile(Authentication authentication) {
-        return userMapper.toDto(getCurrentUserById(authentication));
+        return userMapper.toDto(getCurrentUser(authentication));
     }
 
     @Override
     public UserResponseDto updateProfile(Authentication authentication,
                                          UserRegistrationRequestDto userDto) {
-        User user = getCurrentUserById(authentication);
+        User user = getCurrentUser(authentication);
         user.setEmail(userDto.getEmail());
         user.setLastName(userDto.getLastName());
         user.setFirstName(userDto.getFirstName());
@@ -54,6 +60,7 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
             throw new UserAlreadyExistsRegistrationException(userDto.getEmail());
         }
+
         User user = userMapper.toModel(userDto);
         user.setRole(DEFAULT_ROLE);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
@@ -61,9 +68,13 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(savedUser);
     }
 
-    private User getCurrentUserById(Authentication authentication) {
+    private User getCurrentUser(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        return userRepository.findById(user.getId())
-                .orElseThrow(() -> new UserNotFoundException(user.getId()));
+        return getUserById(user.getId());
+    }
+
+    private User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 }

@@ -1,9 +1,9 @@
 package carsharing.carsharingservice.controller;
 
+import carsharing.carsharingservice.dto.user.RoleUpdateRequestDto;
 import carsharing.carsharingservice.dto.user.UserRegistrationRequestDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
-import carsharing.carsharingservice.model.Role;
-import carsharing.carsharingservice.model.User;
+import carsharing.carsharingservice.dto.user.UserWithRoleResponseDto;
 import carsharing.carsharingservice.service.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +24,9 @@ public class UserController {
     }
 
     @PutMapping("/{id}/role")
-    public User updateUserRole(@PathVariable Long id, @RequestBody Role role) {
-        return userService.updateUserRole(id, role);
+    public UserWithRoleResponseDto updateUserRole(@PathVariable Long userId,
+                                                  @RequestBody RoleUpdateRequestDto updatedRole) {
+        return userService.updateUserRole(userId, updatedRole);
     }
 
     @GetMapping("/me")
