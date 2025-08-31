@@ -5,7 +5,7 @@ import carsharing.carsharingservice.dto.user.UserRegistrationRequestDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
 import carsharing.carsharingservice.dto.user.UserWithRoleResponseDto;
 import carsharing.carsharingservice.exception.UserAlreadyExistsRegistrationException;
-import carsharing.carsharingservice.exception.UserNotFoundException;
+import carsharing.carsharingservice.exception.notfound.UserNotFoundException;
 import carsharing.carsharingservice.mapper.UserMapper;
 import carsharing.carsharingservice.model.Role;
 import carsharing.carsharingservice.model.User;

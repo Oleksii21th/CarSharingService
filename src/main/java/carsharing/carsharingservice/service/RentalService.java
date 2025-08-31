@@ -1,14 +1,18 @@
 package carsharing.carsharingservice.service;
 
+import carsharing.carsharingservice.dto.rental.AddRentalRequestDto;
+import carsharing.carsharingservice.dto.rental.RentalResponseDto;
+import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
+import carsharing.carsharingservice.dto.rental.ReturnDateDto;
 import carsharing.carsharingservice.model.Rental;
 import java.util.List;
 
 public interface RentalService {
-    Rental save(Rental rental);
+    RentalResponseDto save(Long userId, AddRentalRequestDto rentalDto);
 
-    List<Rental> findRentalsByUser(Long userId, Boolean isActive);
+    List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto);
 
-    Rental findRentalById(Long id);
+    RentalResponseDto findRentalById(Long id);
 
-    Rental returnRental(Long id, Rental rental);
+    RentalResponseDto returnRental(Long id, ReturnDateDto returnDateDto);
 }

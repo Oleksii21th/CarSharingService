@@ -1,5 +1,7 @@
 package carsharing.carsharingservice.exception;
 
+import carsharing.carsharingservice.exception.badrequest.BadRequestException;
+import carsharing.carsharingservice.exception.notfound.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,14 +49,13 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         return buildErrorResponse(ex, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler({CarNotFoundException.class,
-            UserNotFoundException.class})
-    public ResponseEntity<Object> handleNotFoundExceptions(RuntimeException ex) {
+    @ExceptionHandler({EntityNotFoundException.class})
+    public ResponseEntity<Object> handleEntityNotFound(EntityNotFoundException ex) {
         return buildErrorResponse(ex, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({InvalidCarTypeException.class})
-    protected ResponseEntity<Object> handleInvalidCarType(InvalidCarTypeException ex) {
+    @ExceptionHandler({BadRequestException.class})
+    protected ResponseEntity<Object> handleBadRequest(BadRequestException  ex) {
         return buildErrorResponse(ex, HttpStatus.BAD_REQUEST);
     }
 

@@ -2,7 +2,7 @@ package carsharing.carsharingservice.service.impl;
 
 import carsharing.carsharingservice.dto.car.AddCarRequestDto;
 import carsharing.carsharingservice.dto.car.CarResponseDto;
-import carsharing.carsharingservice.exception.CarNotFoundException;
+import carsharing.carsharingservice.exception.notfound.CarNotFoundException;
 import carsharing.carsharingservice.mapper.CarMapper;
 import carsharing.carsharingservice.model.Car;
 import carsharing.carsharingservice.repository.CarRepository;
@@ -42,6 +42,7 @@ public class CarServiceImpl implements CarService {
         if (carOptional.isEmpty()) {
             throw new CarNotFoundException(id);
         }
+
         return carOptional.map(carMapper::toDto).orElse(null);
     }
 
@@ -60,6 +61,7 @@ public class CarServiceImpl implements CarService {
         if (!carRepository.existsById(id)) {
             throw new CarNotFoundException(id);
         }
+
         carRepository.deleteById(id);
     }
 }
