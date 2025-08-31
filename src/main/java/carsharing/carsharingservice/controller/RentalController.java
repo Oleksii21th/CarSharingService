@@ -1,5 +1,9 @@
 package carsharing.carsharingservice.controller;
 
+import carsharing.carsharingservice.dto.rental.AddRentalRequestDto;
+import carsharing.carsharingservice.dto.rental.RentalResponseDto;
+import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
+import carsharing.carsharingservice.dto.rental.ReturnDateDto;
 import carsharing.carsharingservice.model.Rental;
 import carsharing.carsharingservice.service.RentalService;
 import java.util.List;
@@ -21,24 +25,24 @@ public class RentalController {
     }
 
     @PostMapping
-    public Rental createRental(@RequestBody Rental rental) {
-        return rentalService.save(rental);
+    public RentalResponseDto createRental(Long userId,
+                                          @RequestBody AddRentalRequestDto rentalDto) {
+        return rentalService.save(userId, rentalDto);
     }
 
     @GetMapping
-    public List<Rental> getRentals(@RequestParam() Long user_id,
-                                   @RequestParam() Boolean is_active) {
-        return rentalService.findRentalsByUser(user_id, is_active);
+    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto) {
+        return rentalService.findRentalsByUser(paramsDto);
     }
 
     @GetMapping("/{id}")
-    public Rental getRentalById(@PathVariable Long id) {
+    public RentalResponseDto findRentalById(@PathVariable Long id) {
         return rentalService.findRentalById(id);
     }
 
     @PostMapping("/{id}/return")
-    public Rental returnRental(@PathVariable Long id,
-                               @RequestBody Rental rental) {
-        return rentalService.returnRental(id, rental);
+    public RentalResponseDto returnRental(@PathVariable Long id,
+                                          @RequestBody ReturnDateDto returnDateDto) {
+        return rentalService.returnRental(id, returnDateDto);
     }
 }

@@ -1,6 +1,6 @@
 package carsharing.carsharingservice.validation;
 
-import carsharing.carsharingservice.exception.InvalidCarTypeException;
+import carsharing.carsharingservice.exception.badrequest.InvalidCarTypeException;
 import carsharing.carsharingservice.model.CarType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

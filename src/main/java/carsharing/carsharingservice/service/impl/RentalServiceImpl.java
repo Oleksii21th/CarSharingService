@@ -1,62 +1,108 @@
 package carsharing.carsharingservice.service.impl;
 
+import carsharing.carsharingservice.dto.rental.AddRentalRequestDto;
+import carsharing.carsharingservice.dto.rental.RentalResponseDto;
+import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
+import carsharing.carsharingservice.dto.rental.ReturnDateDto;
+import carsharing.carsharingservice.exception.badrequest.EmptyCarInventoryException;
+import carsharing.carsharingservice.exception.badrequest.InvalidRentalDateException;
+import carsharing.carsharingservice.exception.badrequest.TwiceReturnedRentalException;
+import carsharing.carsharingservice.exception.notfound.CarNotFoundException;
+import carsharing.carsharingservice.exception.notfound.RentalNotFoundException;
+import carsharing.carsharingservice.mapper.RentalMapper;
 import carsharing.carsharingservice.model.Car;
 import carsharing.carsharingservice.model.Rental;
 import carsharing.carsharingservice.repository.CarRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
+import carsharing.carsharingservice.repository.UserRepository;
 import carsharing.carsharingservice.service.RentalService;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RentalServiceImpl implements RentalService {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final RentalRepository rentalRepository;
+    private final UserRepository userRepository;
     private final CarRepository carRepository;
+    private final RentalMapper rentalMapper;
 
     public RentalServiceImpl(RentalRepository rentalRepository,
-                             CarRepository carRepository) {
+                             UserRepository userRepository,
+                             CarRepository carRepository,
+                             RentalMapper rentalMapper) {
         this.rentalRepository = rentalRepository;
+        this.userRepository = userRepository;
         this.carRepository = carRepository;
+        this.rentalMapper = rentalMapper;
     }
 
     @Override
-    public Rental save(Rental rental) {
-    /** TODO: adding functionality for decreasing inventory of car**/
-        return rentalRepository.save(rental);
-    }
+    public RentalResponseDto save(Long userId, AddRentalRequestDto rentalDto) {
+        Long carId = rentalDto.getCarId();
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new CarNotFoundException(carId));
 
-    @Override
-    public List<Rental> findRentalsByUser(Long userId, Boolean isActive) {
-        return rentalRepository.findByUserIdAndIsActive(userId, isActive);
-    }
-
-    @Override
-    public Rental findRentalById(Long id) {
-        Optional<Rental> rentalOptional = rentalRepository.findById(id);
-        if (rentalOptional.isEmpty()) {
-            throw new RuntimeException("Rental not found with id: " + id);
+        if (car.getInventory() == 0) {
+            throw new EmptyCarInventoryException(car.getModel());
         }
-        return rentalOptional.get();
-    }
+        car.setInventory(car.getInventory() - 1);
 
-    @Override
-    public Rental returnRental(Long userId, Rental rental) {
-        Long rentalId = rental.getId();
-        Rental existingRental  = rentalRepository.findByUserIdAndId(userId, rentalId)
-                .orElseThrow(() ->
-                        new RuntimeException("Rental no found with id " + rentalId));
-
-        if (!rental.isActive()) {
-            throw new RuntimeException("This rental has been returned and can't be returned again");
+        LocalDate currentDate = LocalDate.now();
+        LocalDate rentalDate = LocalDate.parse(rentalDto.getRentalDate(), FORMATTER);
+        if (rentalDate.isBefore(currentDate)) {
+            throw new InvalidRentalDateException();
         }
 
-        rental.setActualReturnDate(LocalDate.now());
-        rental.setActive(false);
+        Car savedCar = carRepository.save(car);
+        Rental rental = rentalMapper.toModel(rentalDto);
+        rental.setUser(userRepository.findById(userId).get());
+        rental.setCar(savedCar);
+
+        Rental savedRental = rentalRepository.save(rental);
+        return rentalMapper.toDto(savedRental);
+    }
+
+    @Override
+    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto) {
+        List<Rental> rentals = rentalRepository.findByUserIdAndIsActive(
+                paramsDto.userId(), paramsDto.isActive());
+
+        return rentals.stream()
+                .map(rentalMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public RentalResponseDto findRentalById(Long id) {
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new RentalNotFoundException(id));
+
+        return rentalMapper.toDto(rental);
+    }
+
+    @Override
+    public RentalResponseDto returnRental(Long userId, ReturnDateDto returnDateDto) {
+        Long rentalId = returnDateDto.rentalId();
+
+        Rental existingRental = rentalRepository.findByUserIdAndId(userId, rentalId)
+                .orElseThrow(() -> new RentalNotFoundException(rentalId));
+
+        if (!existingRental.isActive()) {
+            throw new TwiceReturnedRentalException();
+        }
+
+        existingRental.setActualReturnDate(LocalDate.now());
+        existingRental.setActive(false);
+
         Car car = existingRental.getCar();
         car.setInventory(car.getInventory() + 1);
         carRepository.save(car);
-        return rentalRepository.save(existingRental);
+
+        Rental returnedRental = rentalRepository.save(existingRental);
+        return rentalMapper.toDto(returnedRental);
     }
 }
