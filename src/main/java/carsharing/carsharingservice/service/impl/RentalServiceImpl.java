@@ -1,9 +1,10 @@
 package carsharing.carsharingservice.service.impl;
 
-import carsharing.carsharingservice.dto.rental.AddRentalRequestDto;
+import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
-import carsharing.carsharingservice.dto.rental.ReturnDateDto;
+import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
+import carsharing.carsharingservice.exception.badrequest.ActivePaymentsException;
 import carsharing.carsharingservice.exception.badrequest.EmptyCarInventoryException;
 import carsharing.carsharingservice.exception.badrequest.InvalidRentalDateException;
 import carsharing.carsharingservice.exception.badrequest.TwiceReturnedRentalException;
@@ -11,15 +12,17 @@ import carsharing.carsharingservice.exception.notfound.CarNotFoundException;
 import carsharing.carsharingservice.exception.notfound.RentalNotFoundException;
 import carsharing.carsharingservice.mapper.RentalMapper;
 import carsharing.carsharingservice.model.Car;
+import carsharing.carsharingservice.model.Payment;
+import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.model.Rental;
 import carsharing.carsharingservice.repository.CarRepository;
+import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
 import carsharing.carsharingservice.repository.UserRepository;
 import carsharing.carsharingservice.service.RentalService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,19 +32,23 @@ public class RentalServiceImpl implements RentalService {
     private final UserRepository userRepository;
     private final CarRepository carRepository;
     private final RentalMapper rentalMapper;
+    private final PaymentRepository paymentRepository;
+
 
     public RentalServiceImpl(RentalRepository rentalRepository,
                              UserRepository userRepository,
                              CarRepository carRepository,
-                             RentalMapper rentalMapper) {
+                             RentalMapper rentalMapper,
+                             PaymentRepository paymentRepository) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.carRepository = carRepository;
         this.rentalMapper = rentalMapper;
+        this.paymentRepository = paymentRepository;
     }
 
     @Override
-    public RentalResponseDto save(Long userId, AddRentalRequestDto rentalDto) {
+    public RentalResponseDto save(Long userId, RentalRequestDto rentalDto) {
         Long carId = rentalDto.getCarId();
         Car car = carRepository.findById(carId)
                 .orElseThrow(() -> new CarNotFoundException(carId));
@@ -55,6 +62,12 @@ public class RentalServiceImpl implements RentalService {
         LocalDate rentalDate = LocalDate.parse(rentalDto.getRentalDate(), FORMATTER);
         if (rentalDate.isBefore(currentDate)) {
             throw new InvalidRentalDateException();
+        }
+
+        List<Payment> pendingPayments =
+                paymentRepository.findByUserIdAndStatus(userId, PaymentStatus.PENDING);
+        if (!pendingPayments.isEmpty()) {
+            throw new ActivePaymentsException(pendingPayments.get(0).getRental().getId());
         }
 
         Car savedCar = carRepository.save(car);
@@ -85,7 +98,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public RentalResponseDto returnRental(Long userId, ReturnDateDto returnDateDto) {
+    public RentalResponseDto returnRental(Long userId, RentalReturnDateDto returnDateDto) {
         Long rentalId = returnDateDto.rentalId();
 
         Rental existingRental = rentalRepository.findByUserIdAndId(userId, rentalId)

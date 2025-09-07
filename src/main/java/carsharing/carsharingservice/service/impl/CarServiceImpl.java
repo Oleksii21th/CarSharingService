@@ -1,6 +1,6 @@
 package carsharing.carsharingservice.service.impl;
 
-import carsharing.carsharingservice.dto.car.AddCarRequestDto;
+import carsharing.carsharingservice.dto.car.CarRequestDto;
 import carsharing.carsharingservice.dto.car.CarResponseDto;
 import carsharing.carsharingservice.exception.notfound.CarNotFoundException;
 import carsharing.carsharingservice.mapper.CarMapper;
@@ -23,7 +23,7 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public CarResponseDto save(AddCarRequestDto dto) {
+    public CarResponseDto save(CarRequestDto dto) {
         Car car = carMapper.toModel(dto);
         Car savedCar = carRepository.save(car);
         return carMapper.toDto(savedCar);
@@ -47,7 +47,7 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public CarResponseDto updateCar(Long id, AddCarRequestDto dto) {
+    public CarResponseDto updateCar(Long id, CarRequestDto dto) {
         Car car = carRepository.findById(id)
                 .orElseThrow(() -> new CarNotFoundException(id));
 
