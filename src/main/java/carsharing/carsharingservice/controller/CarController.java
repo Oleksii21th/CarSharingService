@@ -1,6 +1,6 @@
 package carsharing.carsharingservice.controller;
 
-import carsharing.carsharingservice.dto.car.AddCarRequestDto;
+import carsharing.carsharingservice.dto.car.CarRequestDto;
 import carsharing.carsharingservice.dto.car.CarResponseDto;
 import carsharing.carsharingservice.service.CarService;
 import jakarta.validation.Valid;
@@ -17,7 +17,7 @@ public class CarController {
     }
 
     @PostMapping
-    public CarResponseDto saveCar(@RequestBody @Valid AddCarRequestDto requestDto) {
+    public CarResponseDto saveCar(@RequestBody @Valid CarRequestDto requestDto) {
         return carService.save(requestDto);
     }
 
@@ -33,7 +33,7 @@ public class CarController {
 
     @PatchMapping("/{id}")
     public CarResponseDto updateCar(@PathVariable Long id,
-                                    @RequestBody @Valid AddCarRequestDto requestDto) {
+                                    @RequestBody @Valid CarRequestDto requestDto) {
         return carService.updateCar(id, requestDto);
     }
 

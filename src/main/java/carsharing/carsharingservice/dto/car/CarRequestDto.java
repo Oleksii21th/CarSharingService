@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
-public class AddCarRequestDto {
+public class CarRequestDto {
     @NotNull
     private String model;
     @NotNull

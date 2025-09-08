@@ -2,7 +2,7 @@ package carsharing.carsharingservice.dto.rental;
 
 import jakarta.validation.constraints.NotNull;
 
-public class AddRentalRequestDto {
+public class RentalRequestDto {
     @NotNull
     private String rentalDate;
     @NotNull
@@ -10,9 +10,9 @@ public class AddRentalRequestDto {
     @NotNull
     private Long carId;
 
-    public AddRentalRequestDto(String rentalDate,
-                               String returnDate,
-                               Long carId) {
+    public RentalRequestDto(String rentalDate,
+                            String returnDate,
+                            Long carId) {
         this.rentalDate = rentalDate;
         this.returnDate = returnDate;
         this.carId = carId;

@@ -1,7 +1,7 @@
 package carsharing.carsharingservice.mapper;
 
 import carsharing.carsharingservice.config.MapperConfig;
-import carsharing.carsharingservice.dto.rental.AddRentalRequestDto;
+import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalDetailsDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.model.Rental;
@@ -14,7 +14,7 @@ public interface RentalMapper {
     @Mapping(target = "rentalDate", source = "rentalDate", qualifiedByName = "formatDate")
     @Mapping(target = "returnDate", source = "returnDate", qualifiedByName = "formatDate")
     @Mapping(target = "car", source = "carId", qualifiedByName = "FindCarById")
-    Rental toModel(AddRentalRequestDto rentalDto);
+    Rental toModel(RentalRequestDto rentalDto);
 
     @Mapping(target = "rentalDate", source = "rentalDate", qualifiedByName = "formatDate")
     @Mapping(target = "returnDate", source = "returnDate", qualifiedByName = "formatDate")

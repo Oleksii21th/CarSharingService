@@ -10,10 +10,6 @@ public class CarTypeValidator implements ConstraintValidator<ValidCarType, Strin
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null) {
-            return false;
-        }
-
         Arrays.stream(CarType.values())
                 .filter(type -> type.name().equalsIgnoreCase(value))
                 .findFirst()

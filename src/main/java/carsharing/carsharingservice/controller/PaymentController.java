@@ -1,7 +1,11 @@
 package carsharing.carsharingservice.controller;
 
-import carsharing.carsharingservice.model.Payment;
+import carsharing.carsharingservice.dto.payment.PaymentRequestDto;
+import carsharing.carsharingservice.dto.payment.PaymentResponseDto;
+import carsharing.carsharingservice.dto.payment.PaymentResponseFullInfoDto;
+import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.service.PaymentService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,22 +24,22 @@ public class PaymentController {
     }
 
     @GetMapping
-    public List<Payment> findAll(@RequestParam(required = false) Long user_id) {
-        return paymentService.findAllPayments(user_id);
+    public List<PaymentResponseDto> findAllPayments(@RequestParam("user_id") Long userId) {
+        return paymentService.findAllPayments(userId);
     }
 
     @PostMapping
-    public Payment createPayment(@RequestBody Payment payment) {
-        return paymentService.savePaymentSession(payment);
+    public PaymentResponseDto createPayment(@Valid @RequestBody PaymentRequestDto requestDto) {
+        return paymentService.savePaymentSession(requestDto);
     }
 
     @GetMapping("/success")
-    public String paymentSuccess() {
-        return paymentService.successPayment();
+    public PaymentResponseFullInfoDto paymentSuccess(@RequestParam("session_id") String sessionId) {
+        return paymentService.updatePaymentStatus(sessionId, PaymentStatus.PAID);
     }
 
     @GetMapping("/cancel")
-    public String paymentCancel() {
-        return paymentService.cancelPayment();
+    public PaymentResponseFullInfoDto paymentCancel(@RequestParam("session_id") String sessionId) {
+        return paymentService.updatePaymentStatus(sessionId, PaymentStatus.PENDING);
     }
 }
