@@ -31,9 +31,9 @@ public class PaymentServiceImpl implements PaymentService {
     private static final PaymentType PAYMENT = PaymentType.PAYMENT;
     private static final PaymentType FINE = PaymentType.FINE;
     private static final String SUCCESS_URL =
-            "http://localhost:8081/payments/success?session_id={CHECKOUT_SESSION_ID}";
+            "http://localhost:8080/payments/success?session_id={CHECKOUT_SESSION_ID}";
     private static final String CANCEL_URL =
-            "http://localhost:8081/payments/cancel?session_id={CHECKOUT_SESSION_ID}";
+            "http://localhost:8080/payments/cancel?session_id={CHECKOUT_SESSION_ID}";
 
     private final PaymentRepository paymentRepository;
     private final RentalRepository rentalRepository;
