@@ -16,6 +16,7 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,7 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final RentalRepository rentalRepository;
     private final PaymentMapper paymentMapper;
-    private final String stripeSecretKey = "sk_test_51L";
+    private final String stripeSecretKey = Dotenv.load().get("STRIPE_SECRET_KEY");
 
     public PaymentServiceImpl(PaymentRepository paymentRepository,
                               RentalRepository rentalRepository,
