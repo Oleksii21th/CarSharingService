@@ -20,6 +20,7 @@ import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
 import carsharing.carsharingservice.repository.UserRepository;
 import carsharing.carsharingservice.service.RentalService;
+import carsharing.carsharingservice.service.TelegramNotificationService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -33,18 +34,21 @@ public class RentalServiceImpl implements RentalService {
     private final CarRepository carRepository;
     private final RentalMapper rentalMapper;
     private final PaymentRepository paymentRepository;
+    private final TelegramNotificationService telegramNotificationService;
 
 
     public RentalServiceImpl(RentalRepository rentalRepository,
                              UserRepository userRepository,
                              CarRepository carRepository,
                              RentalMapper rentalMapper,
-                             PaymentRepository paymentRepository) {
+                             PaymentRepository paymentRepository,
+                             TelegramNotificationService telegramNotificationService) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.carRepository = carRepository;
         this.rentalMapper = rentalMapper;
         this.paymentRepository = paymentRepository;
+        this.telegramNotificationService = telegramNotificationService;
     }
 
     @Override
@@ -76,6 +80,7 @@ public class RentalServiceImpl implements RentalService {
         rental.setCar(savedCar);
 
         Rental savedRental = rentalRepository.save(rental);
+        telegramNotificationService.sendRentalCreatedNotification(savedRental);
         return rentalMapper.toDto(savedRental);
     }
 
