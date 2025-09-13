@@ -6,6 +6,7 @@ import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
 import carsharing.carsharingservice.service.RentalService;
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,22 +23,26 @@ public class RentalController {
         this.rentalService = rentalService;
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
     @PostMapping
     public RentalResponseDto createRental(Long userId,
                                           @RequestBody RentalRequestDto rentalDto) {
         return rentalService.save(userId, rentalDto);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
     @GetMapping
     public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto) {
         return rentalService.findRentalsByUser(paramsDto);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
     @GetMapping("/{id}")
     public RentalResponseDto findRentalById(@PathVariable Long id) {
         return rentalService.findRentalById(id);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
     @PostMapping("/{id}/return")
     public RentalResponseDto returnRental(@PathVariable Long id,
                                           @RequestBody RentalReturnDateDto returnDateDto) {
