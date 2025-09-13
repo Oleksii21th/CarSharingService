@@ -26,8 +26,6 @@ public class UserRegistrationRequestDto {
     @NotBlank(message = "Last name is required")
     private String lastName;
 
-    private String shippingAddress;
-
     public String getEmail() {
         return email;
     }
@@ -66,13 +64,5 @@ public class UserRegistrationRequestDto {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
-    }
-
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
     }
 }
