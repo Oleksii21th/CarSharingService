@@ -24,6 +24,10 @@
 		<stripe.version>24.9.0</stripe.version>
 		<dotenv.version>3.0.0</dotenv.version>
 		<telegram.bot.version>6.7.0</telegram.bot.version>
+		<maven.checkstyle.plugin.version>3.1.1</maven.checkstyle.plugin.version>
+		<maven.checkstyle.plugin.configLocation>
+			checkstyle.xml
+		</maven.checkstyle.plugin.configLocation>
 	</properties>
 
 	<dependencies>
@@ -119,6 +123,27 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.3.0</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<configLocation>.idea/codeStyles/checkstyle.xml</configLocation>
+					<consoleOutput>true</consoleOutput>
+					<failsOnError>true</failsOnError>
+					<linkXRef>false</linkXRef>
+					<sourceDirectories>src</sourceDirectories>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

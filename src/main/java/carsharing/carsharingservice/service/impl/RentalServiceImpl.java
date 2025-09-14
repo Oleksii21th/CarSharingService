@@ -2,8 +2,8 @@ package carsharing.carsharingservice.service.impl;
 
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
-import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
+import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.exception.badrequest.ActivePaymentsException;
 import carsharing.carsharingservice.exception.badrequest.EmptyCarInventoryException;
 import carsharing.carsharingservice.exception.badrequest.InvalidRentalDateException;
@@ -35,7 +35,6 @@ public class RentalServiceImpl implements RentalService {
     private final RentalMapper rentalMapper;
     private final PaymentRepository paymentRepository;
     private final TelegramNotificationService telegramNotificationService;
-
 
     public RentalServiceImpl(RentalRepository rentalRepository,
                              UserRepository userRepository,

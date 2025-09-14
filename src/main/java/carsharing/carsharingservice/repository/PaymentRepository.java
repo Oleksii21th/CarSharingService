@@ -11,12 +11,18 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-    @Query("SELECT p FROM Payment p WHERE p.rental.user.id = :userId AND p.isDeleted = false")
+    @Query("SELECT p FROM Payment p WHERE p.rental.user.id = :userId "
+            + "AND p.isDeleted = false")
     List<Payment> findPaymentsByUserId(Long userId);
-    @Query("SELECT p FROM Payment p WHERE p.rental.id = :rentalId AND p.type = :type AND p.isDeleted = false")
+
+    @Query("SELECT p FROM Payment p WHERE p.rental.id = :rentalId "
+            + "AND p.type = :type AND p.isDeleted = false")
     List<Payment> findByRentalIdAndType(Long rentalId, PaymentType type);
+
     Optional<Payment> findBySessionId(String sessionId);
-    @Query("SELECT p FROM Payment p JOIN p.rental r JOIN r.user u WHERE u.id = :userId AND p.status = :status")
+
+    @Query("SELECT p FROM Payment p JOIN p.rental r JOIN r.user u WHERE u.id = :userId "
+            + "AND p.status = :status")
     List<Payment> findByUserIdAndStatus(Long userId, PaymentStatus status);
 }
 
