@@ -24,6 +24,7 @@
 		<stripe.version>24.9.0</stripe.version>
 		<dotenv.version>3.0.0</dotenv.version>
 		<telegram.bot.version>6.7.0</telegram.bot.version>
+		<docker.compose.version>3.4.2</docker.compose.version>
 		<maven.checkstyle.plugin.version>3.1.1</maven.checkstyle.plugin.version>
 		<maven.checkstyle.plugin.configLocation>
 			checkstyle.xml
@@ -112,6 +113,11 @@
 			<groupId>com.github.pengrad</groupId>
 			<artifactId>java-telegram-bot-api</artifactId>
 			<version>${telegram.bot.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-docker-compose</artifactId>
+			<version>${docker.compose.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
