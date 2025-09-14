@@ -2,8 +2,8 @@ package carsharing.carsharingservice.controller;
 
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
-import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
+import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.service.RentalService;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;

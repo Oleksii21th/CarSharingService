@@ -11,7 +11,8 @@ public interface UserService {
 
     UserResponseDto getProfile(Authentication authentication);
 
-    UserResponseDto updateProfile(Authentication authentication, UserRegistrationRequestDto userDto);
+    UserResponseDto updateProfile(Authentication authentication,
+                                  UserRegistrationRequestDto userDto);
 
     UserResponseDto registerUser(UserRegistrationRequestDto userDto);
 }

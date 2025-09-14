@@ -55,7 +55,7 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
     }
 
     @ExceptionHandler({BadRequestException.class})
-    protected ResponseEntity<Object> handleBadRequest(BadRequestException  ex) {
+    protected ResponseEntity<Object> handleBadRequest(BadRequestException ex) {
         return buildErrorResponse(ex, HttpStatus.BAD_REQUEST);
     }
 

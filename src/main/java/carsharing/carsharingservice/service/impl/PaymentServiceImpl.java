@@ -69,7 +69,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .stream()
                 .findFirst();
 
-        if (existingPayment.isPresent() && existingPayment.get().getStatus() == DEFAULT_PAYMENT_STATUS) {
+        if (existingPayment.isPresent()
+                && existingPayment.get().getStatus() == DEFAULT_PAYMENT_STATUS) {
             return paymentMapper.toDto(existingPayment.get());
         }
 
@@ -108,14 +109,17 @@ public class PaymentServiceImpl implements PaymentService {
 
     private int getNumberOfDaysRent(Rental rental) {
         LocalDate start = rental.getRentalDate();
-        LocalDate end = rental.getActualReturnDate() != null ? rental.getActualReturnDate() : LocalDate.now();
+        LocalDate end = rental.getActualReturnDate() != null
+                ? rental.getActualReturnDate() : LocalDate.now();
         return (int) Math.max(1, java.time.temporal.ChronoUnit.DAYS.between(start, end));
     }
 
     private int getNumberOfFineDays(Rental rental) {
         LocalDate scheduledReturn = rental.getReturnDate();
-        LocalDate actualReturn = rental.getActualReturnDate() != null ? rental.getActualReturnDate() : LocalDate.now();
-        return (int) Math.max(0, java.time.temporal.ChronoUnit.DAYS.between(scheduledReturn, actualReturn));
+        LocalDate actualReturn = rental.getActualReturnDate() != null
+                ? rental.getActualReturnDate() : LocalDate.now();
+        return (int) Math.max(0, java.time.temporal.ChronoUnit.DAYS.between(
+                scheduledReturn, actualReturn));
     }
 
     private Session createSession(BigDecimal amount, PaymentType type) {
@@ -131,10 +135,17 @@ public class PaymentServiceImpl implements PaymentService {
                                             .setPriceData(
                                                     SessionCreateParams.LineItem.PriceData.builder()
                                                             .setCurrency("usd")
-                                                            .setUnitAmountDecimal(amount.multiply(BigDecimal.valueOf(100)))
+                                                            .setUnitAmountDecimal(
+                                                                    amount.multiply(
+                                                                            BigDecimal.valueOf(100)
+                                                                    )
+                                                            )
                                                             .setProductData(
-                                                                    SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                            .setName("Car Rental (" + type + ")")
+                                                                    SessionCreateParams.LineItem
+                                                                                    .PriceData
+                                                                            .ProductData.builder()
+                                                                            .setName("Car Rental ("
+                                                                                    + type + ")")
                                                                             .build()
                                                             )
                                                             .build()

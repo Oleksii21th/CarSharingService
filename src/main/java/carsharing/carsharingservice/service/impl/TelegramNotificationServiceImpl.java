@@ -20,11 +20,11 @@ public class TelegramNotificationServiceImpl implements TelegramNotificationServ
     @Override
     public void sendRentalCreatedNotification(Rental rental) {
         String message = String.format(
-                "Nowy wynajem utworzony!\n\n" +
-                        "Użytkownik: %s %s (%s)\n" +
-                        "Samochód: %s %s (%s)\n" +
-                        "Data wynajmu: %s\n" +
-                        "Data zwrotu: %s",
+                "Nowy wynajem utworzony!\n\n"
+                        + "Użytkownik: %s %s (%s)\n"
+                        + "Samochód: %s %s (%s)\n"
+                        + "Data wynajmu: %s\n"
+                        + "Data zwrotu: %s",
                 rental.getUser().getFirstName(),
                 rental.getUser().getLastName(),
                 rental.getUser().getUsername(),
@@ -41,11 +41,11 @@ public class TelegramNotificationServiceImpl implements TelegramNotificationServ
     @Override
     public void sendOverdueRentalNotification(Rental rental) {
         String message = String.format(
-                "*Przeterminowany wynajem!*\n\n" +
-                        "Użytkownik: %s %s (%s)\n" +
-                        "Samochód: %s %s (%s)\n" +
-                        "Data zwrotu: %s\n" +
-                        "Obecna data: %s",
+                "*Przeterminowany wynajem!*\n\n"
+                        + "Użytkownik: %s %s (%s)\n"
+                        + "Samochód: %s %s (%s)\n"
+                        + "Data zwrotu: %s\n"
+                        + "Obecna data: %s",
                 rental.getUser().getFirstName(),
                 rental.getUser().getLastName(),
                 rental.getUser().getUsername(),
@@ -64,7 +64,6 @@ public class TelegramNotificationServiceImpl implements TelegramNotificationServ
         String message = "Brak przeterminowanych wynajmów dzisiaj!";
         sendMessage(message);
     }
-
 
     private void sendMessage(String text) {
         String url = telegramProperties.getSendMessageUrl();

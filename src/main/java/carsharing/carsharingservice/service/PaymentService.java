@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface PaymentService {
     List<PaymentResponseDto> findAllPayments(Long userId);
+
     PaymentResponseDto savePaymentSession(PaymentRequestDto requestDto);
+
     PaymentResponseFullInfoDto updatePaymentStatus(String sessionId, PaymentStatus status);
 }
