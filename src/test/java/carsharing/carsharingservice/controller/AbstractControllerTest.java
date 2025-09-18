@@ -3,6 +3,8 @@ package carsharing.carsharingservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,8 +18,8 @@ import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractControllerTest {
-    protected static String removeAllSqlFilePath;
-    protected static String insertDefaultSqlFilePath;
+    protected static List<String> removeAllSqlFilePaths = new ArrayList<>();
+    protected static List<String> insertDefaultSqlFilePaths = new ArrayList<>();
 
     protected static MockMvc mockMvc;
 
@@ -35,13 +37,20 @@ public abstract class AbstractControllerTest {
 
     @BeforeEach
     void setupDatabase(@Autowired DataSource dataSource) {
-        executeScript(dataSource, removeAllSqlFilePath);
-        executeScript(dataSource, insertDefaultSqlFilePath);
+        for (String path : removeAllSqlFilePaths) {
+            executeScript(dataSource, path);
+        }
+
+        for (String path : insertDefaultSqlFilePaths) {
+            executeScript(dataSource, path);
+        }
     }
 
     @AfterAll
     static void afterAll(@Autowired DataSource dataSource) {
-        executeScript(dataSource, removeAllSqlFilePath);
+        for (String path : removeAllSqlFilePaths) {
+            executeScript(dataSource, path);
+        }
     }
 
     private static void executeScript(DataSource dataSource, String scriptPath) {

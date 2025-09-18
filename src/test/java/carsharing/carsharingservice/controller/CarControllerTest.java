@@ -22,13 +22,18 @@ import org.springframework.test.web.servlet.MvcResult;
 class CarControllerTest extends AbstractControllerTest {
 
     static {
-        AbstractControllerTest.insertDefaultSqlFilePath = "database/car/add-default-cars.sql";
-        AbstractControllerTest.removeAllSqlFilePath = "database/car/remove-all-cars.sql";
+        removeAllSqlFilePaths = List.of(
+                "database/car/remove-all-cars.sql"
+        );
+
+        insertDefaultSqlFilePaths = List.of(
+                "database/car/add-default-cars.sql"
+        );
     }
 
     @Test
     @WithMockUser(roles = {"USER"})
-    void findAllCars_ReturnsList() throws Exception {
+    public void findAllCars_DefaultData_ReturnsCarsList() throws Exception {
         MvcResult result = mockMvc.perform(get("/cars")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -36,8 +41,7 @@ class CarControllerTest extends AbstractControllerTest {
 
         List<CarResponseDto> cars = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
-                new TypeReference<>() {
-                }
+                new TypeReference<>() {}
         );
 
         assertThat(cars).hasSize(2);
@@ -46,7 +50,7 @@ class CarControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"USER"})
-    void findCarById_ReturnsCar() throws Exception {
+    public void findCarById_ValidId_ReturnsCar() throws Exception {
         MvcResult result = mockMvc.perform(get("/cars/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -61,7 +65,7 @@ class CarControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"MANAGER"})
-    void createCar_ValidRequestDto_Success() throws Exception {
+    public void createCar_ValidRequestDto_ReturnsCreatedCar() throws Exception {
         CarRequestDto requestDto = new CarRequestDto();
         requestDto.setModel("NewTest");
         requestDto.setBrand("NewTest");
@@ -85,7 +89,7 @@ class CarControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"MANAGER"})
-    void updateCar_ReturnsUpdatedCar() throws Exception {
+    public void updateCar_ValidRequestDto_ReturnsUpdatedCar() throws Exception {
         CarRequestDto requestDto = new CarRequestDto();
         requestDto.setModel("UpdatedTest");
         requestDto.setBrand("UpdatedTest2");
@@ -110,7 +114,7 @@ class CarControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"MANAGER"})
-    void deleteCarById_ReturnsNoContent() throws Exception {
+    public void deleteCarById_ValidId_ReturnsIsOk() throws Exception {
         mockMvc.perform(delete("/cars/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
