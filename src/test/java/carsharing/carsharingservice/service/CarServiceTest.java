@@ -90,7 +90,7 @@ class CarServiceTest {
     }
 
     @Test
-    @DisplayName("Returns car by ID")
+    @DisplayName("Returns car by id")
     void findById_ExistingId_ReturnsCarDto() {
         when(carRepository.findById(1L)).thenReturn(Optional.of(car));
         when(carMapper.toDto(car)).thenReturn(carResponseDto);
@@ -102,7 +102,7 @@ class CarServiceTest {
     }
 
     @Test
-    @DisplayName("Throws CarNotFoundException if ID not found")
+    @DisplayName("Throws CarNotFoundException if id not found")
     void findById_NonExistingId_ThrowsException() {
         when(carRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -136,7 +136,7 @@ class CarServiceTest {
     }
 
     @Test
-    @DisplayName("Deletes car by ID")
+    @DisplayName("Deletes car by id")
     void deleteCar_ValidId_DeletesCar() {
         when(carRepository.existsById(1L)).thenReturn(true);
 

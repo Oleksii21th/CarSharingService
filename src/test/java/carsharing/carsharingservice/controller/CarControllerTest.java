@@ -32,7 +32,7 @@ class CarControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
+    @WithMockUser(roles = {"CUSTOMER"})
     public void findAllCars_DefaultData_ReturnsCarsList() throws Exception {
         MvcResult result = mockMvc.perform(get("/cars")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -49,7 +49,7 @@ class CarControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
+    @WithMockUser(roles = {"CUSTOMER"})
     public void findCarById_ValidId_ReturnsCar() throws Exception {
         MvcResult result = mockMvc.perform(get("/cars/2")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -60,7 +60,7 @@ class CarControllerTest extends AbstractControllerTest {
                 result.getResponse().getContentAsString(), CarResponseDto.class);
 
         assertThat(car.getBrand()).isEqualTo("Test");
-        assertThat(car.getDailyFee()).isEqualTo(BigDecimal.valueOf(2).setScale(2));
+        assertThat(car.getDailyFee()).isEqualTo(BigDecimal.valueOf(2));
     }
 
     @Test

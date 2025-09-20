@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,6 +47,7 @@ class PaymentServiceTest {
     private PaymentServiceImpl paymentService;
 
     @Test
+    @DisplayName("Returns list of user payments when they exist")
     void findAllPayments_UserHasPayments_ReturnsList() {
         Payment payment = new Payment();
         payment.setId(1L);
@@ -67,6 +69,7 @@ class PaymentServiceTest {
     }
 
     @Test
+    @DisplayName("Creates new payment session and returns DTO")
     void savePaymentSession_NewPayment_CreatesAndReturnsDto() {
         Car car = new Car();
         car.setDailyFee(BigDecimal.valueOf(1));
@@ -120,6 +123,7 @@ class PaymentServiceTest {
     }
 
     @Test
+    @DisplayName("Updates payment status and returns full DTO when session exists")
     void updatePaymentStatus_ValidSessionId_UpdatesAndReturnsDto() {
         Rental rental = new Rental();
         rental.setId(1L);
@@ -145,6 +149,7 @@ class PaymentServiceTest {
     }
 
     @Test
+    @DisplayName("Throws exception when no payment is found by sessionId")
     void updatePaymentStatus_InvalidSessionId_ThrowsException() {
         when(paymentRepository.findBySessionId("noSession")).thenReturn(Optional.empty());
 

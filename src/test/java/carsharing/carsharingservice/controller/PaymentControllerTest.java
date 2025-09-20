@@ -36,7 +36,7 @@ class PaymentControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
+    @WithMockUser(roles = {"CUSTOMER"})
     public void findAllPayments_UserHasPayments_ReturnsPaymentsList() throws Exception {
         MvcResult result = mockMvc.perform(get("/payments")
                         .param("user_id", "1")
@@ -54,7 +54,7 @@ class PaymentControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
+    @WithMockUser(roles = {"CUSTOMER"})
     public void createPayment_ValidRequestDto_ReturnsCreatedPayment() throws Exception {
         PaymentRequestDto requestDto = new PaymentRequestDto(2L, "PAYMENT");
         String jsonRequest = objectMapper.writeValueAsString(requestDto);
@@ -73,7 +73,7 @@ class PaymentControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
+    @WithMockUser(roles = {"CUSTOMER"})
     public void paymentSuccess_ValidSessionId_UpdatesStatusToPaid() throws Exception {
         MvcResult result = mockMvc.perform(get("/payments/success")
                         .param("session_id", "session1")
@@ -89,7 +89,7 @@ class PaymentControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
+    @WithMockUser(roles = {"CUSTOMER"})
     public void paymentCancel_ValidSessionId_UpdatesStatusToPending() throws Exception {
         MvcResult result = mockMvc.perform(get("/payments/cancel")
                         .param("session_id", "session1")
