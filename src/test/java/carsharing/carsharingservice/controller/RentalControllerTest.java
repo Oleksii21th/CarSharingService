@@ -57,7 +57,7 @@ class RentalControllerTest extends AbstractControllerTest {
     @WithMockUser(roles = {"CUSTOMER"})
     void findRentalsByUser_ValidParams_ReturnsList() throws Exception {
         MvcResult result = mockMvc.perform(get("/rentals")
-                        .param("userId" , "1")
+                        .param("userId", "1")
                         .param("isActive", "true")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

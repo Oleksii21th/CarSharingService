@@ -33,7 +33,7 @@ class CarControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
-    public void findAllCars_DefaultData_ReturnsCarsList() throws Exception {
+    void findAllCars_DefaultData_ReturnsCarsList() throws Exception {
         MvcResult result = mockMvc.perform(get("/cars")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -41,7 +41,8 @@ class CarControllerTest extends AbstractControllerTest {
 
         List<CarResponseDto> cars = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
-                new TypeReference<>() {}
+                new TypeReference<>() {
+                }
         );
 
         assertThat(cars).hasSize(2);
@@ -50,7 +51,7 @@ class CarControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
-    public void findCarById_ValidId_ReturnsCar() throws Exception {
+    void findCarById_ValidId_ReturnsCar() throws Exception {
         MvcResult result = mockMvc.perform(get("/cars/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -60,12 +61,12 @@ class CarControllerTest extends AbstractControllerTest {
                 result.getResponse().getContentAsString(), CarResponseDto.class);
 
         assertThat(car.getBrand()).isEqualTo("Test");
-        assertThat(car.getDailyFee()).isEqualTo(BigDecimal.valueOf(2));
+        assertThat(car.getDailyFee()).isEqualTo(BigDecimal.valueOf(2).setScale(2));
     }
 
     @Test
     @WithMockUser(roles = {"MANAGER"})
-    public void createCar_ValidRequestDto_ReturnsCreatedCar() throws Exception {
+    void createCar_ValidRequestDto_ReturnsCreatedCar() throws Exception {
         CarRequestDto requestDto = new CarRequestDto();
         requestDto.setModel("NewTest");
         requestDto.setBrand("NewTest");
@@ -89,7 +90,7 @@ class CarControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"MANAGER"})
-    public void updateCar_ValidRequestDto_ReturnsUpdatedCar() throws Exception {
+    void updateCar_ValidRequestDto_ReturnsUpdatedCar() throws Exception {
         CarRequestDto requestDto = new CarRequestDto();
         requestDto.setModel("UpdatedTest");
         requestDto.setBrand("UpdatedTest2");
@@ -114,7 +115,7 @@ class CarControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"MANAGER"})
-    public void deleteCarById_ValidId_ReturnsIsOk() throws Exception {
+    void deleteCarById_ValidId_ReturnsIsOk() throws Exception {
         mockMvc.perform(delete("/cars/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

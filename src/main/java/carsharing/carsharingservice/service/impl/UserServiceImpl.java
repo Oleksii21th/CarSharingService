@@ -69,8 +69,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private User getCurrentUser(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-        return getUserById(user.getId());
+        String email = authentication.getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
     }
 
     private User getUserById(Long userId) {
