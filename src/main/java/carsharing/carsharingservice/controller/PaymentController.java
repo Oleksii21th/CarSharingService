@@ -24,25 +24,25 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping
     public List<PaymentResponseDto> findAllPayments(@RequestParam("user_id") Long userId) {
         return paymentService.findAllPayments(userId);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PostMapping
     public PaymentResponseDto createPayment(@Valid @RequestBody PaymentRequestDto requestDto) {
         return paymentService.savePaymentSession(requestDto);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/success")
     public PaymentResponseFullInfoDto paymentSuccess(@RequestParam("session_id") String sessionId) {
         return paymentService.updatePaymentStatus(sessionId, PaymentStatus.PAID);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/cancel")
     public PaymentResponseFullInfoDto paymentCancel(@RequestParam("session_id") String sessionId) {
         return paymentService.updatePaymentStatus(sessionId, PaymentStatus.PENDING);

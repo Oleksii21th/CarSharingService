@@ -31,13 +31,13 @@ public class UserController {
         return userService.updateUserRole(userId, updatedRole);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/me")
     public UserResponseDto getMyProfile(Authentication authentication) {
         return userService.getProfile(authentication);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PatchMapping("/me")
     public UserResponseDto updateMyProfile(Authentication authentication,
                                 @RequestBody UserRegistrationRequestDto userDto) {
