@@ -97,7 +97,9 @@ class RentalServiceTest {
     @DisplayName("Saves rental successfully")
     void save_ValidRequest_ReturnsDto() {
         when(carRepository.findById(1L)).thenReturn(Optional.of(car));
-        when(paymentRepository.findByUserIdAndStatus(1L, PaymentStatus.PENDING)).thenReturn(List.of());
+        when(paymentRepository.findByUserIdAndStatus(
+                1L,
+                PaymentStatus.PENDING)).thenReturn(List.of());
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(rentalMapper.toModel(rentalRequestDto)).thenReturn(rental);
         when(rentalRepository.save(rental)).thenReturn(rental);
@@ -128,7 +130,8 @@ class RentalServiceTest {
         car.setInventory(0);
         when(carRepository.findById(1L)).thenReturn(Optional.of(car));
 
-        assertThrows(EmptyCarInventoryException.class, () -> rentalService.save(1L, rentalRequestDto));
+        assertThrows(EmptyCarInventoryException.class, () ->
+                rentalService.save(1L, rentalRequestDto));
     }
 
     @Test
@@ -150,9 +153,12 @@ class RentalServiceTest {
         when(carRepository.findById(1L)).thenReturn(Optional.of(car));
         Payment payment = new Payment();
         payment.setRental(rental);
-        when(paymentRepository.findByUserIdAndStatus(1L, PaymentStatus.PENDING)).thenReturn(List.of(payment));
+        when(paymentRepository.findByUserIdAndStatus(
+                1L,
+                PaymentStatus.PENDING)).thenReturn(List.of(payment));
 
-        assertThrows(ActivePaymentsException.class, () -> rentalService.save(1L, rentalRequestDto));
+        assertThrows(ActivePaymentsException.class, () ->
+                rentalService.save(1L, rentalRequestDto));
     }
 
     @Test
@@ -206,17 +212,21 @@ class RentalServiceTest {
     void returnRental_AlreadyReturned_ThrowsException() {
         rental.setActive(false);
         RentalReturnDateDto returnDto = new RentalReturnDateDto(1L);
-        when(rentalRepository.findByUserIdAndId(1L, 1L)).thenReturn(Optional.of(rental));
+        when(rentalRepository.findByUserIdAndId(1L, 1L))
+                .thenReturn(Optional.of(rental));
 
-        assertThrows(TwiceReturnedRentalException.class, () -> rentalService.returnRental(1L, returnDto));
+        assertThrows(TwiceReturnedRentalException.class, () ->
+                rentalService.returnRental(1L, returnDto));
     }
 
     @Test
     @DisplayName("Throws RentalNotFoundException if rental not found")
     void returnRental_NotFound_ThrowsException() {
         RentalReturnDateDto returnDto = new RentalReturnDateDto(99L);
-        when(rentalRepository.findByUserIdAndId(1L, 99L)).thenReturn(Optional.empty());
+        when(rentalRepository.findByUserIdAndId(1L, 99L))
+                .thenReturn(Optional.empty());
 
-        assertThrows(RentalNotFoundException.class, () -> rentalService.returnRental(1L, returnDto));
+        assertThrows(RentalNotFoundException.class, () ->
+                rentalService.returnRental(1L, returnDto));
     }
 }

@@ -122,7 +122,8 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Throws UserAlreadyExistsRegistrationException when registering with existing email")
+    @DisplayName("Throws UserAlreadyExistsRegistrationException "
+            + "when registering with existing email")
     void registerUser_EmailExists_ThrowsException() {
         when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.of(user));
 
@@ -136,7 +137,6 @@ class UserServiceTest {
     @Test
     @DisplayName("Updates user role with valid role and returns updated role DTO")
     void updateUserRole_ValidRole_ReturnsUpdatedRole() {
-        RoleUpdateRequestDto roleUpdate = new RoleUpdateRequestDto("MANAGER");
         UserWithRoleResponseDto roleResponseDto = new UserWithRoleResponseDto();
         roleResponseDto.setRole("MANAGER");
 
@@ -144,6 +144,7 @@ class UserServiceTest {
         when(userRepository.save(user)).thenReturn(user);
         when(userMapper.toDtoOnlyWithUpdatingRole(user)).thenReturn(roleResponseDto);
 
+        RoleUpdateRequestDto roleUpdate = new RoleUpdateRequestDto("MANAGER");
         UserWithRoleResponseDto updated = userService.updateUserRole(user.getId(), roleUpdate);
 
         assertThat(updated.getRole()).isEqualTo("MANAGER");

@@ -142,7 +142,8 @@ class PaymentServiceTest {
         when(paymentRepository.save(payment)).thenReturn(payment);
         when(paymentMapper.toFullInfoDto(payment)).thenReturn(fullDto);
 
-        PaymentResponseFullInfoDto result = paymentService.updatePaymentStatus("session1", PaymentStatus.PAID);
+        PaymentResponseFullInfoDto result =
+                paymentService.updatePaymentStatus("session1", PaymentStatus.PAID);
 
         assertThat(result.getType()).isEqualTo("FINE");
         verify(paymentRepository).save(payment);
@@ -153,7 +154,8 @@ class PaymentServiceTest {
     void updatePaymentStatus_InvalidSessionId_ThrowsException() {
         when(paymentRepository.findBySessionId("noSession")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> paymentService.updatePaymentStatus("noSession", PaymentStatus.PAID))
+        assertThatThrownBy(() ->
+                paymentService.updatePaymentStatus("noSession", PaymentStatus.PAID))
                 .isInstanceOf(PaymentNotFoundException.class);
     }
 }
