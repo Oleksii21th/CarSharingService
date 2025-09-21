@@ -23,26 +23,26 @@ public class RentalController {
         this.rentalService = rentalService;
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PostMapping
     public RentalResponseDto createRental(Long userId,
                                           @RequestBody RentalRequestDto rentalDto) {
         return rentalService.save(userId, rentalDto);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping
     public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto) {
         return rentalService.findRentalsByUser(paramsDto);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/{id}")
     public RentalResponseDto findRentalById(@PathVariable Long id) {
         return rentalService.findRentalById(id);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PostMapping("/{id}/return")
     public RentalResponseDto returnRental(@PathVariable Long id,
                                           @RequestBody RentalReturnDateDto returnDateDto) {
