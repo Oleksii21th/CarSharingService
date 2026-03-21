@@ -2,6 +2,11 @@ databaseChangeLog:
   - changeSet:
       id: create-cars-table
       author: Oleksii Babych
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: car
       changes:
         - createTable:
             tableName: car

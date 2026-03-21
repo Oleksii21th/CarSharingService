@@ -2,44 +2,49 @@ databaseChangeLog:
   - changeSet:
       id: create-payments-table
       author: Oleksii Babych
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: payment
       changes:
         - createTable:
             tableName: payment
             columns:
               - column:
                   name: id
-                  type: bigint
+                  type: BIGINT
                   autoIncrement: true
                   constraints:
-                    nullable: false
                     primaryKey: true
+                    nullable: false
               - column:
                   name: status
-                  type: varchar(255)
+                  type: VARCHAR(255)
                   constraints:
                     nullable: false
               - column:
                   name: type
-                  type: varchar(255)
+                  type: VARCHAR(255)
                   constraints:
                     nullable: false
               - column:
                   name: rental_id
-                  type: bigint
+                  type: BIGINT
                   constraints:
                     nullable: false
               - column:
                   name: session_url
-                  type: varchar(255)
+                  type: VARCHAR(255)
               - column:
                   name: session_id
-                  type: varchar(255)
+                  type: VARCHAR(255)
               - column:
                   name: amount
-                  type: DECIMAL
+                  type: DECIMAL(10,2)
               - column:
                   name: is_deleted
-                  type: boolean
+                  type: BOOLEAN
                   defaultValueBoolean: false
                   constraints:
                     nullable: false

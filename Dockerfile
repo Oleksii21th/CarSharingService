@@ -5,13 +5,13 @@ COPY src ./src
 COPY codeStyles ./codeStyles
 RUN mvn clean install -DskipTests
 
-FROM openjdk:17-jdk-slim as builder
+FROM eclipse-temurin:17-jdk-jammy AS builder
 WORKDIR application
 ARG JAR_FILE=target/*.jar
 COPY --from=build /app/${JAR_FILE} application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 WORKDIR application
 COPY --from=builder application/dependencies/ ./
 COPY --from=builder application/snapshot-dependencies/ ./
