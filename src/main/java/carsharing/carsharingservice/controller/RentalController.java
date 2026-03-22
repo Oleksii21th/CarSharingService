@@ -2,11 +2,12 @@ package carsharing.carsharingservice.controller;
 
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
-import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
+import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.service.RentalService;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,9 +26,10 @@ public class RentalController {
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PostMapping
-    public RentalResponseDto createRental(Long userId,
+    public RentalResponseDto createRental(Authentication authentication,
                                           @RequestBody RentalRequestDto rentalDto) {
-        return rentalService.save(userId, rentalDto);
+        User user = (User) authentication.getPrincipal();
+        return rentalService.save(user.getId(), rentalDto);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
@@ -44,8 +46,9 @@ public class RentalController {
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PostMapping("/{id}/return")
-    public RentalResponseDto returnRental(@PathVariable Long id,
-                                          @RequestBody RentalReturnDateDto returnDateDto) {
-        return rentalService.returnRental(id, returnDateDto);
+    public RentalResponseDto returnRental(@PathVariable("id") Long rentalId,
+                                          Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return rentalService.returnRental(user.getId(), rentalId);
     }
 }

@@ -3,6 +3,7 @@ package carsharing.carsharingservice.service.impl;
 import carsharing.carsharingservice.dto.user.RoleUpdateRequestDto;
 import carsharing.carsharingservice.dto.user.UserRegistrationRequestDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
+import carsharing.carsharingservice.dto.user.UserUpdateRequestDto;
 import carsharing.carsharingservice.dto.user.UserWithRoleResponseDto;
 import carsharing.carsharingservice.exception.UserAlreadyExistsRegistrationException;
 import carsharing.carsharingservice.exception.notfound.UserNotFoundException;
@@ -34,7 +35,7 @@ public class UserServiceImpl implements UserService {
     public UserWithRoleResponseDto updateUserRole(Long userId,
                                                   RoleUpdateRequestDto updatedRole) {
         User user = getUserById(userId);
-        user.setRole(Role.valueOf(updatedRole.role()));
+        user.setRole(updatedRole.role());
         userRepository.save(user);
         return userMapper.toDtoOnlyWithUpdatingRole(user);
     }
@@ -46,24 +47,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto updateProfile(Authentication authentication,
-                                         UserRegistrationRequestDto userDto) {
+                                         UserUpdateRequestDto userDto) {
         User user = getCurrentUser(authentication);
-        user.setEmail(userDto.getEmail());
-        user.setLastName(userDto.getLastName());
-        user.setFirstName(userDto.getFirstName());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setEmail(userDto.email());
+        user.setLastName(userDto.lastName());
+        user.setFirstName(userDto.firstName());
         return userMapper.toDto(userRepository.save(user));
     }
 
     @Override
     public UserResponseDto registerUser(UserRegistrationRequestDto userDto) {
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new UserAlreadyExistsRegistrationException(userDto.getEmail());
+        if (userRepository.findByEmail(userDto.email()).isPresent()) {
+            throw new UserAlreadyExistsRegistrationException(userDto.email());
         }
 
         User user = userMapper.toModel(userDto);
         user.setRole(DEFAULT_ROLE);
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setPassword(passwordEncoder.encode(userDto.password()));
         User savedUser = userRepository.save(user);
         return userMapper.toDto(savedUser);
     }
