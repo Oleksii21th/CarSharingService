@@ -2,7 +2,6 @@ package carsharing.carsharingservice.service;
 
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
-import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import java.util.List;
 
@@ -13,5 +12,5 @@ public interface RentalService {
 
     RentalResponseDto findRentalById(Long id);
 
-    RentalResponseDto returnRental(Long id, RentalReturnDateDto returnDateDto);
+    RentalResponseDto returnRental(Long userId, Long rentalId);
 }

@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
-import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
+import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.service.TelegramNotificationService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.LocalDate;
@@ -20,6 +20,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -92,6 +95,8 @@ class RentalControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void createRental_ValidRequestDto_ReturnsCreatedRental() throws Exception {
+        setMockCustomerUser();
+
         Mockito.doNothing().when(telegramNotificationService)
                 .sendRentalCreatedNotification(Mockito.any());
 
@@ -118,13 +123,9 @@ class RentalControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void returnRental_ValidId_ReturnsUpdatedRental() throws Exception {
-        RentalReturnDateDto returnDateDto = new RentalReturnDateDto(2L);
+        setMockCustomerUser();
 
-        String json = objectMapper.writeValueAsString(returnDateDto);
-
-        MvcResult result = mockMvc.perform(post("/rentals/1/return")
-                        .content(json)
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(post("/rentals/2/return"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -134,5 +135,17 @@ class RentalControllerTest extends AbstractControllerTest {
 
         assertThat(returned.getActualReturnDate()).isNotNull();
         assertThat(returned.getId()).isEqualTo(2L);
+    }
+
+    private void setMockCustomerUser() {
+        User mockUser = new User();
+        mockUser.setId(1L);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser,
+                        "password",
+                        List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
+                )
+        );
     }
 }

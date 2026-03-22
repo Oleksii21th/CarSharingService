@@ -7,9 +7,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import carsharing.carsharingservice.dto.user.RoleUpdateRequestDto;
-import carsharing.carsharingservice.dto.user.UserRegistrationRequestDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
+import carsharing.carsharingservice.dto.user.UserUpdateRequestDto;
 import carsharing.carsharingservice.dto.user.UserWithRoleResponseDto;
+import carsharing.carsharingservice.model.Role;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -52,12 +53,11 @@ class UserControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void updateMyProfile_ValidRequestDto_ReturnsUpdatedProfile() throws Exception {
-        UserRegistrationRequestDto updateDto = new UserRegistrationRequestDto();
-        updateDto.setEmail("updated@test.com");
-        updateDto.setFirstName("UpdatedTest");
-        updateDto.setLastName("UpdatedTest");
-        updateDto.setPassword("Test123");
-        updateDto.setRepeatPassword("Test123");
+        UserUpdateRequestDto updateDto = new UserUpdateRequestDto(
+                "updated@test.com",
+                "UpdatedTest",
+                "UpdatedTest"
+        );
 
         String json = objectMapper.writeValueAsString(updateDto);
 
@@ -79,7 +79,7 @@ class UserControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(username = "manager@test.com", roles = {"MANAGER"})
     void updateUserRole_ByManager_UpdatesRole() throws Exception {
-        RoleUpdateRequestDto roleUpdate = new RoleUpdateRequestDto("MANAGER");
+        RoleUpdateRequestDto roleUpdate = new RoleUpdateRequestDto(Role.MANAGER);
 
         String json = objectMapper.writeValueAsString(roleUpdate);
 

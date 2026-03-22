@@ -1,4 +1,6 @@
 package carsharing.carsharingservice.dto.user;
 
-public record RoleUpdateRequestDto(String role) {
+import carsharing.carsharingservice.model.Role;
+
+public record RoleUpdateRequestDto(Role role) {
 }

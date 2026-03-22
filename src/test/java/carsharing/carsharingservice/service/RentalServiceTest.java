@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
-import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.exception.badrequest.ActivePaymentsException;
 import carsharing.carsharingservice.exception.badrequest.EmptyCarInventoryException;
@@ -195,12 +194,11 @@ class RentalServiceTest {
     @Test
     @DisplayName("Returns rental successfully")
     void returnRental_Valid_ReturnsDto() {
-        RentalReturnDateDto returnDto = new RentalReturnDateDto(1L);
         when(rentalRepository.findByUserIdAndId(1L, 1L)).thenReturn(Optional.of(rental));
         when(rentalRepository.save(rental)).thenReturn(rental);
         when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
 
-        RentalResponseDto result = rentalService.returnRental(1L, returnDto);
+        RentalResponseDto result = rentalService.returnRental(1L, 1L);
 
         assertThat(result).isEqualTo(rentalResponseDto);
         assertThat(rental.isActive()).isFalse();
@@ -211,22 +209,20 @@ class RentalServiceTest {
     @DisplayName("Throws TwiceReturnedRentalException if already returned")
     void returnRental_AlreadyReturned_ThrowsException() {
         rental.setActive(false);
-        RentalReturnDateDto returnDto = new RentalReturnDateDto(1L);
         when(rentalRepository.findByUserIdAndId(1L, 1L))
                 .thenReturn(Optional.of(rental));
 
         assertThrows(TwiceReturnedRentalException.class, () ->
-                rentalService.returnRental(1L, returnDto));
+                rentalService.returnRental(1L, 1L));
     }
 
     @Test
     @DisplayName("Throws RentalNotFoundException if rental not found")
     void returnRental_NotFound_ThrowsException() {
-        RentalReturnDateDto returnDto = new RentalReturnDateDto(99L);
         when(rentalRepository.findByUserIdAndId(1L, 99L))
                 .thenReturn(Optional.empty());
 
         assertThrows(RentalNotFoundException.class, () ->
-                rentalService.returnRental(1L, returnDto));
+                rentalService.returnRental(1L, 99L));
     }
 }

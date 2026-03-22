@@ -1,8 +1,8 @@
 package carsharing.carsharingservice.controller;
 
 import carsharing.carsharingservice.dto.user.RoleUpdateRequestDto;
-import carsharing.carsharingservice.dto.user.UserRegistrationRequestDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
+import carsharing.carsharingservice.dto.user.UserUpdateRequestDto;
 import carsharing.carsharingservice.dto.user.UserWithRoleResponseDto;
 import carsharing.carsharingservice.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +40,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PatchMapping("/me")
     public UserResponseDto updateMyProfile(Authentication authentication,
-                                @RequestBody UserRegistrationRequestDto userDto) {
+                                           @RequestBody UserUpdateRequestDto userDto) {
         return userService.updateProfile(authentication, userDto);
     }
 }

@@ -2,7 +2,6 @@ package carsharing.carsharingservice.service.impl;
 
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
-import carsharing.carsharingservice.dto.rental.RentalReturnDateDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.exception.badrequest.ActivePaymentsException;
 import carsharing.carsharingservice.exception.badrequest.EmptyCarInventoryException;
@@ -102,9 +101,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public RentalResponseDto returnRental(Long userId, RentalReturnDateDto returnDateDto) {
-        Long rentalId = returnDateDto.rentalId();
-
+    public RentalResponseDto returnRental(Long userId, Long rentalId) {
         Rental existingRental = rentalRepository.findByUserIdAndId(userId, rentalId)
                 .orElseThrow(() -> new RentalNotFoundException(rentalId));
 
