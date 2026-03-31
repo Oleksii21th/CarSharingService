@@ -15,5 +15,6 @@ public interface UserMapper {
 
     User toModel(UserRegistrationRequestDto requestDto);
 
+    @Mapping(source = "username", target = "email")
     UserWithRoleResponseDto toDtoOnlyWithUpdatingRole(User user);
 }
