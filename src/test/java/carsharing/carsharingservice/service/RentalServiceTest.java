@@ -170,7 +170,7 @@ class RentalServiceTest {
     @DisplayName("Customer sees only own rentals")
     void findRentalsByUser_Customer_ReturnsOwnRentals() {
         RentalSearchParametersDto params =
-                new RentalSearchParametersDto(999L, true);
+                new RentalSearchParametersDto(99L, true);
 
         Authentication authentication = mock(Authentication.class);
 

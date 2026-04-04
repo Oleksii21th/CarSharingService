@@ -58,6 +58,8 @@ class RentalControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void findRentalById_ValidId_ReturnsRental() throws Exception {
+        setMockCustomerUser();
+
         MvcResult result = mockMvc.perform(get("/rentals/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -75,6 +77,8 @@ class RentalControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void findRentalsByUser_ValidParams_ReturnsList() throws Exception {
+        setMockCustomerUser();
+
         MvcResult result = mockMvc.perform(get("/rentals")
                         .param("userId", "1")
                         .param("isActive", "true")
