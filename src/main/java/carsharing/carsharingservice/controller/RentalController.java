@@ -34,14 +34,15 @@ public class RentalController {
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping
-    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto) {
-        return rentalService.findRentalsByUser(paramsDto);
+    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto,
+                                                     Authentication authentication) {
+        return rentalService.findRentalsByUser(paramsDto, authentication);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/{id}")
-    public RentalResponseDto findRentalById(@PathVariable Long id) {
-        return rentalService.findRentalById(id);
+    public RentalResponseDto findRentalById(@PathVariable Long id, Authentication authentication) {
+        return rentalService.findRentalById(id, authentication);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")

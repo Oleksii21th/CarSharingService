@@ -2,6 +2,7 @@ package carsharing.carsharingservice.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +28,8 @@ import carsharing.carsharingservice.repository.UserRepository;
 import carsharing.carsharingservice.service.impl.RentalServiceImpl;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +39,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
 class RentalServiceTest {
@@ -161,34 +167,114 @@ class RentalServiceTest {
     }
 
     @Test
-    @DisplayName("Finds rentals by user")
-    void findRentalsByUser_ReturnsList() {
-        RentalSearchParametersDto params = new RentalSearchParametersDto(1L, true);
-        when(rentalRepository.findByUserIdAndIsActive(1L, true)).thenReturn(List.of(rental));
+    @DisplayName("Customer sees only own rentals")
+    void findRentalsByUser_Customer_ReturnsOwnRentals() {
+        RentalSearchParametersDto params = new RentalSearchParametersDto(999L, true);
+
+        Authentication authentication = mock(Authentication.class);
+
+        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_CUSTOMER");
+        Collection<SimpleGrantedAuthority> authCollection = Collections.singleton(simpleGrantedAuthority);
+
+        when(authentication.getPrincipal()).thenReturn(user);
+        when(authentication.getAuthorities())
+                .thenReturn((Collection) authCollection);
+
+        when(rentalRepository.findByUserIdAndIsActive(1L, true))
+                .thenReturn(List.of(rental));
+
         when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
 
-        List<RentalResponseDto> result = rentalService.findRentalsByUser(params);
+        List<RentalResponseDto> result =
+                rentalService.findRentalsByUser(params, authentication);
+
+        assertThat(result).containsExactly(rentalResponseDto);
+        verify(rentalRepository).findByUserIdAndIsActive(1L, true);
+    }
+
+    @Test
+    @DisplayName("Manager can fetch any user's rentals")
+    void findRentalsByUser_Manager_ReturnsAnyUserRentals() {
+        RentalSearchParametersDto params = new RentalSearchParametersDto(5L, true);
+
+        Authentication authentication = mock(Authentication.class);
+
+        User manager = new User();
+        manager.setId(5L);
+
+        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_MANAGER");
+        Collection<SimpleGrantedAuthority> authCollection = Collections.singleton(simpleGrantedAuthority);
+
+        when(authentication.getPrincipal()).thenReturn(manager);
+        when(authentication.getAuthorities())
+                .thenReturn((Collection) authCollection);
+
+        when(rentalRepository.findByUserIdAndIsActive(5L, true))
+                .thenReturn(List.of(rental));
+
+        when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
+
+        List<RentalResponseDto> result =
+                rentalService.findRentalsByUser(params, authentication);
 
         assertThat(result).containsExactly(rentalResponseDto);
     }
 
     @Test
-    @DisplayName("Finds rental by id")
-    void findRentalById_ExistingId_ReturnsDto() {
+    @DisplayName("Finds rental by id for owner")
+    void findRentalById_Owner_ReturnsDto() {
+        Authentication authentication = mock(Authentication.class);
+
+        rental.setUser(user);
+
+        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_CUSTOMER");
+        Collection<SimpleGrantedAuthority> authCollection = Collections.singleton(simpleGrantedAuthority);
+
+        when(authentication.getPrincipal()).thenReturn(user);
+        when(authentication.getAuthorities())
+                .thenReturn((Collection) authCollection);
+
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
         when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
 
-        RentalResponseDto result = rentalService.findRentalById(1L);
+        RentalResponseDto result =
+                rentalService.findRentalById(1L, authentication);
 
         assertThat(result).isEqualTo(rentalResponseDto);
     }
 
     @Test
+    @DisplayName("Throws AccessDeniedException when not owner")
+    void findRentalById_NotOwner_ThrowsException() {
+        Authentication authentication = mock(Authentication.class);
+
+        User otherUser = new User();
+        otherUser.setId(2L);
+
+        rental.setUser(user);
+
+        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_CUSTOMER");
+        Collection<SimpleGrantedAuthority> authCollection = Collections.singleton(simpleGrantedAuthority);
+
+        when(authentication.getPrincipal()).thenReturn(otherUser);
+        when(authentication.getAuthorities())
+                .thenReturn((Collection) authCollection);
+
+        when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
+
+        assertThrows(AccessDeniedException.class,
+                () -> rentalService.findRentalById(1L, authentication));
+    }
+
+    @Test
     @DisplayName("Throws RentalNotFoundException when id not found")
     void findRentalById_NotFound_ThrowsException() {
+        Authentication authentication = mock(Authentication.class);
+
         when(rentalRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(RentalNotFoundException.class, () -> rentalService.findRentalById(99L));
+        assertThrows(RentalNotFoundException.class,
+                () -> rentalService.findRentalById(99L, authentication));
     }
 
     @Test

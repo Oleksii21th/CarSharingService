@@ -14,6 +14,7 @@ import carsharing.carsharingservice.model.Car;
 import carsharing.carsharingservice.model.Payment;
 import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.model.Rental;
+import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.repository.CarRepository;
 import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
@@ -23,6 +24,8 @@ import carsharing.carsharingservice.service.TelegramNotificationService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -83,9 +86,18 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto) {
+    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto, Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        Long userId;
+
+        if (hasRole(authentication, "ROLE_MANAGER")) {
+            userId = paramsDto.userId();
+        } else {
+            userId = user.getId();
+        }
+
         List<Rental> rentals = rentalRepository.findByUserIdAndIsActive(
-                paramsDto.userId(), paramsDto.isActive());
+                userId, paramsDto.isActive());
 
         return rentals.stream()
                 .map(rentalMapper::toDto)
@@ -93,11 +105,29 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public RentalResponseDto findRentalById(Long id) {
+    public RentalResponseDto findRentalById(Long id, Authentication authentication) {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new RentalNotFoundException(id));
 
+        checkAccess(rental, authentication);
+
         return rentalMapper.toDto(rental);
+    }
+
+    private boolean hasRole(Authentication authentication, String role) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(role));
+    }
+
+    private void checkAccess(Rental rental, Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+
+        boolean isOwner = rental.getUser().getId().equals(user.getId());
+        boolean isManager = hasRole(authentication, "ROLE_MANAGER");
+
+        if (!isOwner && !isManager) {
+            throw new AccessDeniedException("You haven't access to this rental");
+        }
     }
 
     @Override
