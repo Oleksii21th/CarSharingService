@@ -169,12 +169,15 @@ class RentalServiceTest {
     @Test
     @DisplayName("Customer sees only own rentals")
     void findRentalsByUser_Customer_ReturnsOwnRentals() {
-        RentalSearchParametersDto params = new RentalSearchParametersDto(999L, true);
+        RentalSearchParametersDto params =
+                new RentalSearchParametersDto(999L, true);
 
         Authentication authentication = mock(Authentication.class);
 
-        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_CUSTOMER");
-        Collection<SimpleGrantedAuthority> authCollection = Collections.singleton(simpleGrantedAuthority);
+        SimpleGrantedAuthority simpleGrantedAuthority =
+                new SimpleGrantedAuthority("ROLE_CUSTOMER");
+        Collection<SimpleGrantedAuthority> authCollection =
+                Collections.singleton(simpleGrantedAuthority);
 
         when(authentication.getPrincipal()).thenReturn(user);
         when(authentication.getAuthorities())
@@ -195,15 +198,15 @@ class RentalServiceTest {
     @Test
     @DisplayName("Manager can fetch any user's rentals")
     void findRentalsByUser_Manager_ReturnsAnyUserRentals() {
-        RentalSearchParametersDto params = new RentalSearchParametersDto(5L, true);
-
         Authentication authentication = mock(Authentication.class);
 
         User manager = new User();
         manager.setId(5L);
 
-        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_MANAGER");
-        Collection<SimpleGrantedAuthority> authCollection = Collections.singleton(simpleGrantedAuthority);
+        SimpleGrantedAuthority simpleGrantedAuthority =
+                new SimpleGrantedAuthority("ROLE_MANAGER");
+        Collection<SimpleGrantedAuthority> authCollection =
+                Collections.singleton(simpleGrantedAuthority);
 
         when(authentication.getPrincipal()).thenReturn(manager);
         when(authentication.getAuthorities())
@@ -213,6 +216,9 @@ class RentalServiceTest {
                 .thenReturn(List.of(rental));
 
         when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
+
+        RentalSearchParametersDto params =
+                new RentalSearchParametersDto(5L, true);
 
         List<RentalResponseDto> result =
                 rentalService.findRentalsByUser(params, authentication);
@@ -227,8 +233,10 @@ class RentalServiceTest {
 
         rental.setUser(user);
 
-        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_CUSTOMER");
-        Collection<SimpleGrantedAuthority> authCollection = Collections.singleton(simpleGrantedAuthority);
+        SimpleGrantedAuthority simpleGrantedAuthority =
+                new SimpleGrantedAuthority("ROLE_CUSTOMER");
+        Collection<SimpleGrantedAuthority> authCollection =
+                Collections.singleton(simpleGrantedAuthority);
 
         when(authentication.getPrincipal()).thenReturn(user);
         when(authentication.getAuthorities())
@@ -253,8 +261,10 @@ class RentalServiceTest {
 
         rental.setUser(user);
 
-        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_CUSTOMER");
-        Collection<SimpleGrantedAuthority> authCollection = Collections.singleton(simpleGrantedAuthority);
+        SimpleGrantedAuthority simpleGrantedAuthority =
+                new SimpleGrantedAuthority("ROLE_CUSTOMER");
+        Collection<SimpleGrantedAuthority> authCollection =
+                Collections.singleton(simpleGrantedAuthority);
 
         when(authentication.getPrincipal()).thenReturn(otherUser);
         when(authentication.getAuthorities())

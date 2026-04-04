@@ -86,7 +86,8 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto, Authentication authentication) {
+    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto,
+                                                     Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         Long userId;
 

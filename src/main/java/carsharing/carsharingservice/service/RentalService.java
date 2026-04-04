@@ -9,7 +9,8 @@ import org.springframework.security.core.Authentication;
 public interface RentalService {
     RentalResponseDto save(Long userId, RentalRequestDto rentalDto);
 
-    List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto, Authentication authentication);
+    List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto,
+                                              Authentication authentication);
 
     RentalResponseDto findRentalById(Long id, Authentication authentication);
 
