@@ -11,6 +11,7 @@ import carsharing.carsharingservice.model.PaymentType;
 import carsharing.carsharingservice.model.Rental;
 import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
+import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.PaymentService;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,37 +36,47 @@ public class PaymentServiceImpl implements PaymentService {
             "http://localhost:8080/payments/success?session_id={CHECKOUT_SESSION_ID}";
     private static final String CANCEL_URL =
             "http://localhost:8080/payments/cancel?session_id={CHECKOUT_SESSION_ID}";
+    private static final String STRIPE_RETURN_STATUS_PAID = "paid";
 
     private final PaymentRepository paymentRepository;
     private final RentalRepository rentalRepository;
     private final PaymentMapper paymentMapper;
+    private final AccessManager accessManager;
     private final String stripeSecretKey = System.getenv("STRIPE_SECRET_KEY");
 
     public PaymentServiceImpl(PaymentRepository paymentRepository,
                               RentalRepository rentalRepository,
-                              PaymentMapper paymentMapper) {
+                              PaymentMapper paymentMapper,
+                              AccessManager accessManager) {
         this.paymentRepository = paymentRepository;
         this.rentalRepository = rentalRepository;
         this.paymentMapper = paymentMapper;
+        this.accessManager = accessManager;
     }
 
     @Override
-    public List<PaymentResponseDto> findAllPayments(Long userId) {
+    public List<PaymentResponseDto> findAllPayments(Long userId,
+                                                    Authentication authentication) {
+        accessManager.checkOwnerOrManager(authentication, userId);
+
         return paymentRepository.findPaymentsByUserId(userId).stream()
                 .map(paymentMapper::toDto)
                 .toList();
     }
 
     @Override
-    public PaymentResponseDto savePaymentSession(PaymentRequestDto requestDto) {
+    public PaymentResponseDto savePaymentSession(PaymentRequestDto requestDto,
+                                                 Authentication authentication) {
         Long rentalId = requestDto.rentalId();
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new PaymentNotFoundException(rentalId));
 
+        accessManager.checkOwnerOrManager(authentication, rental.getUser().getId());
+
         PaymentType typeOfPayment = PaymentType.valueOf(requestDto.paymentType());
 
         Optional<Payment> existingPayment = paymentRepository
-                .findByRentalIdAndType(requestDto.rentalId(), typeOfPayment)
+                .findByRentalIdAndType(rentalId, typeOfPayment)
                 .stream()
                 .findFirst();
 
@@ -99,11 +111,27 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponseFullInfoDto updatePaymentStatus(String sessionId, PaymentStatus status) {
+    public PaymentResponseFullInfoDto updatePaymentStatus(String sessionId) {
         Payment payment = paymentRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new PaymentNotFoundException(sessionId));
-        payment.setStatus(status);
-        return paymentMapper.toFullInfoDto(paymentRepository.save(payment));
+
+        Stripe.apiKey = stripeSecretKey;
+
+        try {
+            Session session = Session.retrieve(sessionId);
+
+            if (STRIPE_RETURN_STATUS_PAID.equals(session.getPaymentStatus())) {
+                payment.setStatus(PaymentStatus.PAID);
+                paymentRepository.save(payment);
+            } else {
+                throw new IllegalStateException("Payment not completed in Stripe");
+            }
+
+        } catch (StripeException exception) {
+            throw new RuntimeException("Failed to verify Stripe session", exception);
+        }
+
+        return paymentMapper.toFullInfoDto(payment);
     }
 
     private int getNumberOfDaysRent(Rental rental) {
@@ -141,7 +169,7 @@ public class PaymentServiceImpl implements PaymentService {
                                                             )
                                                             .setProductData(
                                                                     SessionCreateParams.LineItem
-                                                                                    .PriceData
+                                                                            .PriceData
                                                                             .ProductData.builder()
                                                                             .setName("Car Rental ("
                                                                                     + type + ")")

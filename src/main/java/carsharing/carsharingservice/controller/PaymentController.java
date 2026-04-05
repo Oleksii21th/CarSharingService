@@ -3,11 +3,11 @@ package carsharing.carsharingservice.controller;
 import carsharing.carsharingservice.dto.payment.PaymentRequestDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseFullInfoDto;
-import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.service.PaymentService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,25 +26,27 @@ public class PaymentController {
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping
-    public List<PaymentResponseDto> findAllPayments(@RequestParam("user_id") Long userId) {
-        return paymentService.findAllPayments(userId);
+    public List<PaymentResponseDto> findAllPayments(@RequestParam(value = "user_id") Long userId,
+                                                    Authentication authentication) {
+        return paymentService.findAllPayments(userId, authentication);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PostMapping
-    public PaymentResponseDto createPayment(@Valid @RequestBody PaymentRequestDto requestDto) {
-        return paymentService.savePaymentSession(requestDto);
+    public PaymentResponseDto createPayment(@Valid @RequestBody PaymentRequestDto requestDto,
+                                            Authentication authentication) {
+        return paymentService.savePaymentSession(requestDto, authentication);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/success")
     public PaymentResponseFullInfoDto paymentSuccess(@RequestParam("session_id") String sessionId) {
-        return paymentService.updatePaymentStatus(sessionId, PaymentStatus.PAID);
+        return paymentService.updatePaymentStatus(sessionId);
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/cancel")
     public PaymentResponseFullInfoDto paymentCancel(@RequestParam("session_id") String sessionId) {
-        return paymentService.updatePaymentStatus(sessionId, PaymentStatus.PENDING);
+        return paymentService.updatePaymentStatus(sessionId);
     }
 }
