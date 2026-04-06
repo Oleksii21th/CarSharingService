@@ -7,9 +7,11 @@ import java.util.List;
 import org.springframework.security.core.Authentication;
 
 public interface PaymentService {
-    List<PaymentResponseDto> findAllPayments(Long userId, Authentication authentication);
+    List<PaymentResponseDto> findAllPayments(Long userId,
+                                             Authentication authentication);
 
-    PaymentResponseDto savePaymentSession(PaymentRequestDto requestDto, Authentication authentication);
+    PaymentResponseDto savePaymentSession(PaymentRequestDto requestDto,
+                                          Authentication authentication);
 
     PaymentResponseFullInfoDto updatePaymentStatus(String sessionId);
 }

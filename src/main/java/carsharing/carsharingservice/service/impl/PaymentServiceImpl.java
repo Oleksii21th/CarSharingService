@@ -57,9 +57,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<PaymentResponseDto> findAllPayments(Long userId,
                                                     Authentication authentication) {
-        accessManager.checkOwnerOrManager(authentication, userId);
+        Long targetUserId = accessManager.resolveUserId(authentication, userId);
+        accessManager.checkOwnerOrManager(authentication, targetUserId);
 
-        return paymentRepository.findPaymentsByUserId(userId).stream()
+        return paymentRepository.findPaymentsByUserId(targetUserId).stream()
                 .map(paymentMapper::toDto)
                 .toList();
     }
@@ -71,7 +72,9 @@ public class PaymentServiceImpl implements PaymentService {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new PaymentNotFoundException(rentalId));
 
-        accessManager.checkOwnerOrManager(authentication, rental.getUser().getId());
+        Long userId = rental.getUser() != null ? rental.getUser().getId() : null;
+        Long targetUserId = accessManager.resolveUserId(authentication, userId);
+        accessManager.checkOwnerOrManager(authentication, targetUserId);
 
         PaymentType typeOfPayment = PaymentType.valueOf(requestDto.paymentType());
 

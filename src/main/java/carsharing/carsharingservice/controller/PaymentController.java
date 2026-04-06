@@ -26,7 +26,8 @@ public class PaymentController {
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping
-    public List<PaymentResponseDto> findAllPayments(@RequestParam(value = "user_id") Long userId,
+    public List<PaymentResponseDto> findAllPayments(@RequestParam(value = "user_id",
+                                                                required = false) Long userId,
                                                     Authentication authentication) {
         return paymentService.findAllPayments(userId, authentication);
     }

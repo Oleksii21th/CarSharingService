@@ -25,6 +25,7 @@ import carsharing.carsharingservice.repository.CarRepository;
 import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
 import carsharing.carsharingservice.repository.UserRepository;
+import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.impl.RentalServiceImpl;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -59,6 +61,8 @@ class RentalServiceTest {
     private PaymentRepository paymentRepository;
     @Mock
     private TelegramNotificationService telegramNotificationService;
+    @Spy
+    private AccessManager accessManager;
 
     @InjectMocks
     private RentalServiceImpl rentalService;
@@ -170,7 +174,7 @@ class RentalServiceTest {
     @DisplayName("Customer sees only own rentals")
     void findRentalsByUser_Customer_ReturnsOwnRentals() {
         RentalSearchParametersDto params =
-                new RentalSearchParametersDto(99L, true);
+                new RentalSearchParametersDto(1L, true);
 
         Authentication authentication = mock(Authentication.class);
 

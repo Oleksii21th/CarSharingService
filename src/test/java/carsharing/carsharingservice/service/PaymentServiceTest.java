@@ -3,7 +3,6 @@ package carsharing.carsharingservice.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,7 +55,6 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Returns list of user payments when they exist")
     void findAllPayments_UserHasPayments_ReturnsList() {
-        // Підготовка даних
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setType(PaymentType.PAYMENT);
@@ -68,7 +66,7 @@ class PaymentServiceTest {
         );
 
         Authentication mockAuth = Mockito.mock(Authentication.class);
-        doNothing().when(accessManager).checkOwnerOrManager(mockAuth, 1L);
+        when(accessManager.resolveUserId(mockAuth, 1L)).thenReturn(1L);
 
         when(paymentRepository.findPaymentsByUserId(1L)).thenReturn(List.of(payment));
         when(paymentMapper.toDto(payment)).thenReturn(dto);
@@ -111,10 +109,11 @@ class PaymentServiceTest {
         );
 
         Authentication mockAuth = Mockito.mock(Authentication.class);
-        doNothing().when(accessManager).checkOwnerOrManager(mockAuth, mockUser.getId());
+        when(accessManager.resolveUserId(mockAuth, 1L)).thenReturn(1L);
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
-        when(paymentRepository.findByRentalIdAndType(1L, PaymentType.PAYMENT)).thenReturn(List.of());
+        when(paymentRepository.findByRentalIdAndType(1L, PaymentType.PAYMENT))
+                .thenReturn(List.of());
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
         when(paymentMapper.toDto(any(Payment.class))).thenReturn(responseDto);
 

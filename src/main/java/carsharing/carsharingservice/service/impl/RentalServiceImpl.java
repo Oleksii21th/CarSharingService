@@ -14,17 +14,16 @@ import carsharing.carsharingservice.model.Car;
 import carsharing.carsharingservice.model.Payment;
 import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.model.Rental;
-import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.repository.CarRepository;
 import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
 import carsharing.carsharingservice.repository.UserRepository;
+import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.RentalService;
 import carsharing.carsharingservice.service.TelegramNotificationService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -37,19 +36,22 @@ public class RentalServiceImpl implements RentalService {
     private final RentalMapper rentalMapper;
     private final PaymentRepository paymentRepository;
     private final TelegramNotificationService telegramNotificationService;
+    private final AccessManager accessManager;
 
     public RentalServiceImpl(RentalRepository rentalRepository,
                              UserRepository userRepository,
                              CarRepository carRepository,
                              RentalMapper rentalMapper,
                              PaymentRepository paymentRepository,
-                             TelegramNotificationService telegramNotificationService) {
+                             TelegramNotificationService telegramNotificationService,
+                             AccessManager accessManager) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.carRepository = carRepository;
         this.rentalMapper = rentalMapper;
         this.paymentRepository = paymentRepository;
         this.telegramNotificationService = telegramNotificationService;
+        this.accessManager = accessManager;
     }
 
     @Override
@@ -88,19 +90,11 @@ public class RentalServiceImpl implements RentalService {
     @Override
     public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto,
                                                      Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-        Long userId;
+        Long targetUserId = accessManager.resolveUserId(authentication, paramsDto.userId());
+        accessManager.checkOwnerOrManager(authentication, targetUserId);
 
-        if (hasRole(authentication, "ROLE_MANAGER")) {
-            userId = paramsDto.userId();
-        } else {
-            userId = user.getId();
-        }
-
-        List<Rental> rentals = rentalRepository.findByUserIdAndIsActive(
-                userId, paramsDto.isActive());
-
-        return rentals.stream()
+        return rentalRepository.findByUserIdAndIsActive(targetUserId, paramsDto.isActive())
+                .stream()
                 .map(rentalMapper::toDto)
                 .toList();
     }
@@ -110,25 +104,11 @@ public class RentalServiceImpl implements RentalService {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new RentalNotFoundException(id));
 
-        checkAccess(rental, authentication);
+        Long userId = rental.getUser() != null ? rental.getUser().getId() : null;
+        Long targetUserId = accessManager.resolveUserId(authentication, userId);
+        accessManager.checkOwnerOrManager(authentication, targetUserId);
 
         return rentalMapper.toDto(rental);
-    }
-
-    private boolean hasRole(Authentication authentication, String role) {
-        return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(role));
-    }
-
-    private void checkAccess(Rental rental, Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-
-        boolean isOwner = rental.getUser().getId().equals(user.getId());
-        boolean isManager = hasRole(authentication, "ROLE_MANAGER");
-
-        if (!isOwner && !isManager) {
-            throw new AccessDeniedException("You haven't access to this rental");
-        }
     }
 
     @Override
