@@ -17,8 +17,10 @@ import carsharing.carsharingservice.model.Payment;
 import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.model.PaymentType;
 import carsharing.carsharingservice.model.Rental;
+import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
+import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.impl.PaymentServiceImpl;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -32,7 +34,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -42,6 +46,8 @@ class PaymentServiceTest {
     private RentalRepository rentalRepository;
     @Mock
     private PaymentMapper paymentMapper;
+    @Mock
+    private AccessManager accessManager;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -59,13 +65,17 @@ class PaymentServiceTest {
                 BigDecimal.valueOf(50), "test"
         );
 
+        Authentication mockAuth = Mockito.mock(Authentication.class);
+        when(accessManager.resolveUserId(mockAuth, 1L)).thenReturn(1L);
+
         when(paymentRepository.findPaymentsByUserId(1L)).thenReturn(List.of(payment));
         when(paymentMapper.toDto(payment)).thenReturn(dto);
 
-        List<PaymentResponseDto> result = paymentService.findAllPayments(1L);
+        List<PaymentResponseDto> result = paymentService.findAllPayments(1L, mockAuth);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatus()).isEqualTo("PENDING");
+        assertThat(result.get(0).getType()).isEqualTo("PAYMENT");
     }
 
     @Test
@@ -80,7 +90,12 @@ class PaymentServiceTest {
         rental.setRentalDate(LocalDate.now().minusDays(3));
         rental.setReturnDate(LocalDate.now().plusDays(2));
 
+        User mockUser = new User();
+        mockUser.setId(1L);
+        rental.setUser(mockUser);
+
         PaymentRequestDto requestDto = new PaymentRequestDto(1L, "PAYMENT");
+
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setRental(rental);
@@ -89,35 +104,32 @@ class PaymentServiceTest {
         payment.setAmountToPay(BigDecimal.valueOf(1));
 
         PaymentResponseDto responseDto = new PaymentResponseDto(
-                1L,
-                1L,
-                "PENDING",
-                "PAYMENT",
-                "session123",
-                BigDecimal.valueOf(1),
-                "test"
+                1L, 1L, "PENDING", "PAYMENT", "session123",
+                BigDecimal.valueOf(1), "Go to this link to finish payment: test"
         );
+
+        Authentication mockAuth = Mockito.mock(Authentication.class);
+        when(accessManager.resolveUserId(mockAuth, 1L)).thenReturn(1L);
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
         when(paymentRepository.findByRentalIdAndType(1L, PaymentType.PAYMENT))
                 .thenReturn(List.of());
+        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
+        when(paymentMapper.toDto(any(Payment.class))).thenReturn(responseDto);
 
         Session mockSession = mock(Session.class);
         when(mockSession.getId()).thenReturn("session123");
         when(mockSession.getUrl()).thenReturn("test");
 
-        try (MockedStatic<Session> mockedSession =
-                     org.mockito.Mockito.mockStatic(Session.class)) {
-            mockedSession.when(() -> Session.create(any(SessionCreateParams.class)))
+        try (MockedStatic<Session> mockedStatic = Mockito.mockStatic(Session.class)) {
+            mockedStatic.when(() -> Session.create(Mockito.<SessionCreateParams>any()))
                     .thenReturn(mockSession);
 
-            when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-            when(paymentMapper.toDto(any(Payment.class))).thenReturn(responseDto);
-
-            PaymentResponseDto result = paymentService.savePaymentSession(requestDto);
+            PaymentResponseDto result = paymentService.savePaymentSession(requestDto, mockAuth);
 
             assertThat(result.getRentalId()).isEqualTo(1L);
             assertThat(result.getType()).isEqualTo("PAYMENT");
+            assertThat(result.getDescription()).contains("Go to this link to finish payment");
             verify(paymentRepository).save(any(Payment.class));
         }
     }
@@ -142,20 +154,25 @@ class PaymentServiceTest {
         when(paymentRepository.save(payment)).thenReturn(payment);
         when(paymentMapper.toFullInfoDto(payment)).thenReturn(fullDto);
 
-        PaymentResponseFullInfoDto result =
-                paymentService.updatePaymentStatus("session1", PaymentStatus.PAID);
+        Session mockSession = mock(Session.class);
+        when(mockSession.getPaymentStatus()).thenReturn("paid");
 
-        assertThat(result.getType()).isEqualTo("FINE");
-        verify(paymentRepository).save(payment);
+        try (MockedStatic<Session> mockedStatic = Mockito.mockStatic(Session.class)) {
+            mockedStatic.when(() -> Session.retrieve("session1")).thenReturn(mockSession);
+
+            PaymentResponseFullInfoDto result = paymentService.updatePaymentStatus("session1");
+
+            assertThat(result.getType()).isEqualTo("FINE");
+            verify(paymentRepository).save(payment);
+        }
     }
 
     @Test
     @DisplayName("Throws exception when no payment is found by sessionId")
     void updatePaymentStatus_InvalidSessionId_ThrowsException() {
-        when(paymentRepository.findBySessionId("noSession")).thenReturn(Optional.empty());
+        when(paymentRepository.findBySessionId("noId")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-                paymentService.updatePaymentStatus("noSession", PaymentStatus.PAID))
+        assertThatThrownBy(() -> paymentService.updatePaymentStatus("noId"))
                 .isInstanceOf(PaymentNotFoundException.class);
     }
 }
