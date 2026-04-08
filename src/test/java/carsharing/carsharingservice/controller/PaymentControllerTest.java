@@ -11,13 +11,17 @@ import carsharing.carsharingservice.dto.payment.PaymentRequestDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseFullInfoDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
+import carsharing.carsharingservice.model.Payment;
+import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.model.User;
+import carsharing.carsharingservice.repository.PaymentRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.stripe.model.checkout.Session;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,6 +48,9 @@ class PaymentControllerTest extends AbstractControllerTest {
                 "database/payment/add-default-payments.sql"
         );
     }
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
@@ -104,8 +111,13 @@ class PaymentControllerTest extends AbstractControllerTest {
                     .andReturn();
 
             PaymentResponseFullInfoDto payment = objectMapper.readValue(
-                    result.getResponse().getContentAsString(), PaymentResponseFullInfoDto.class);
+                    result.getResponse().getContentAsString(),
+                    PaymentResponseFullInfoDto.class
+            );
 
+            Payment savedPayment = paymentRepository.findBySessionId("session1").orElseThrow();
+
+            assertThat(savedPayment.getStatus()).isEqualTo(PaymentStatus.PAID);
             assertThat(payment.getType()).isEqualTo("PAYMENT");
             assertThat(payment.getAmountToPay()).isNotNull();
             assertThat(payment.getRental()).isInstanceOf(RentalResponseDto.class);
@@ -114,26 +126,17 @@ class PaymentControllerTest extends AbstractControllerTest {
 
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
-    void paymentCancel_ValidSessionId_ReturnsPending() throws Exception {
-        Session mockSession = mock(Session.class);
-        when(mockSession.getPaymentStatus()).thenReturn("unpaid");
+    void paymentCancel_ValidSessionId_ReturnsInfoMessage() throws Exception {
+        MvcResult result = mockMvc.perform(get("/payments/cancel")
+                        .param("session_id", "session1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        try (MockedStatic<Session> mockedStatic = Mockito.mockStatic(Session.class)) {
-            mockedStatic.when(() -> Session.retrieve("session1")).thenReturn(mockSession);
+        String response = result.getResponse().getContentAsString();
 
-            MvcResult result = mockMvc.perform(get("/payments/cancel")
-                            .param("session_id", "session1")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andReturn();
-
-            PaymentResponseFullInfoDto payment = objectMapper.readValue(
-                    result.getResponse().getContentAsString(), PaymentResponseFullInfoDto.class);
-
-            assertThat(payment.getType()).isEqualTo("PAYMENT");
-            assertThat(payment.getAmountToPay()).isNotNull();
-            assertThat(payment.getRental()).isInstanceOf(RentalResponseDto.class);
-        }
+        assertThat(response).contains("You can complete this payment later, "
+                + "using the same session.");
     }
 
     private void setMockCustomerUser() {

@@ -37,7 +37,6 @@ public class PaymentServiceImpl implements PaymentService {
     private static final String CANCEL_URL =
             "http://localhost:8080/payments/cancel?session_id={CHECKOUT_SESSION_ID}";
     private static final String STRIPE_RETURN_STATUS_PAID = "paid";
-    private static final String STRIPE_RETURN_STATUS_PENDING = "unpaid";
 
     private final PaymentRepository paymentRepository;
     private final RentalRepository rentalRepository;
@@ -123,16 +122,14 @@ public class PaymentServiceImpl implements PaymentService {
 
         try {
             Session session = Session.retrieve(sessionId);
+            String status = session.getPaymentStatus();
 
-            if (STRIPE_RETURN_STATUS_PAID.equals(session.getPaymentStatus())) {
-                payment.setStatus(PaymentStatus.PAID);
-                paymentRepository.save(payment);
-            } else if (STRIPE_RETURN_STATUS_PENDING.equals(session.getPaymentStatus())) {
-                payment.setStatus(PaymentStatus.PENDING);
-                paymentRepository.save(payment);
-            } else {
+            if (!STRIPE_RETURN_STATUS_PAID.equals(status)) {
                 throw new IllegalStateException("Payment not completed in Stripe");
             }
+
+            payment.setStatus(PaymentStatus.PAID);
+            paymentRepository.save(payment);
 
         } catch (StripeException exception) {
             throw new RuntimeException("Failed to verify Stripe session", exception);

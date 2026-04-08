@@ -47,7 +47,7 @@ public class PaymentController {
 
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/cancel")
-    public PaymentResponseFullInfoDto paymentCancel(@RequestParam("session_id") String sessionId) {
-        return paymentService.updatePaymentStatus(sessionId);
+    public String paymentCancel() {
+        return "You can complete this payment later, using the same session.";
     }
 }
