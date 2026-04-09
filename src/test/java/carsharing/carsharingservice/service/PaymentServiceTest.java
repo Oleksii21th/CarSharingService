@@ -37,6 +37,8 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -121,15 +123,30 @@ class PaymentServiceTest {
         when(mockSession.getId()).thenReturn("session123");
         when(mockSession.getUrl()).thenReturn("test");
 
-        try (MockedStatic<Session> mockedStatic = Mockito.mockStatic(Session.class)) {
-            mockedStatic.when(() -> Session.create(Mockito.<SessionCreateParams>any()))
+        try (MockedStatic<Session> mockedStripe = Mockito.mockStatic(Session.class);
+                MockedStatic<ServletUriComponentsBuilder> mockedUriBuilder =
+                           Mockito.mockStatic(ServletUriComponentsBuilder.class)) {
+
+            mockedStripe.when(() -> Session.create(Mockito.<SessionCreateParams>any()))
                     .thenReturn(mockSession);
+
+            UriComponentsBuilder realBuilder =
+                    UriComponentsBuilder.fromUriString("http://localhost:8080");
+            ServletUriComponentsBuilder dummyBuilder =
+                    Mockito.mock(ServletUriComponentsBuilder.class);
+
+            Mockito.lenient().when(dummyBuilder.replacePath(any())).thenReturn(dummyBuilder);
+            Mockito.lenient().when(dummyBuilder.build()).thenReturn(realBuilder.build());
+
+            mockedUriBuilder.when(ServletUriComponentsBuilder::fromCurrentContextPath)
+                    .thenReturn(dummyBuilder);
 
             PaymentResponseDto result = paymentService.savePaymentSession(requestDto, mockAuth);
 
             assertThat(result.getRentalId()).isEqualTo(1L);
             assertThat(result.getType()).isEqualTo("PAYMENT");
             assertThat(result.getDescription()).contains("Go to this link to finish payment");
+
             verify(paymentRepository).save(any(Payment.class));
         }
     }
