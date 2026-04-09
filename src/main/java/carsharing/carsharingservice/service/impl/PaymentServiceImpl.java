@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Transactional
@@ -32,10 +34,6 @@ public class PaymentServiceImpl implements PaymentService {
     private static final BigDecimal FINE_MULTIPLIER = BigDecimal.valueOf(1.5);
     private static final PaymentType PAYMENT = PaymentType.PAYMENT;
     private static final PaymentType FINE = PaymentType.FINE;
-    private static final String SUCCESS_URL =
-            "http://localhost:8080/payments/success?session_id={CHECKOUT_SESSION_ID}";
-    private static final String CANCEL_URL =
-            "http://localhost:8080/payments/cancel?session_id={CHECKOUT_SESSION_ID}";
     private static final String STRIPE_RETURN_STATUS_PAID = "paid";
 
     private final PaymentRepository paymentRepository;
@@ -102,8 +100,22 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setStatus(DEFAULT_PAYMENT_STATUS);
         payment.setAmountToPay(amount);
 
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .build()
+                .toUriString();
+
+        String successUrl = UriComponentsBuilder.fromUriString(baseUrl)
+                .path("/payments/success")
+                .queryParam("session_id", "{CHECKOUT_SESSION_ID}")
+                .toUriString();
+
+        String cancelUrl = UriComponentsBuilder.fromUriString(baseUrl)
+                .path("/payments/cancel")
+                .queryParam("session_id", "{CHECKOUT_SESSION_ID}")
+                .toUriString();
+
         Stripe.apiKey = stripeSecretKey;
-        Session session = createSession(amount, typeOfPayment);
+        Session session = createSession(amount, typeOfPayment, successUrl, cancelUrl);
         payment.setSessionId(session.getId());
         payment.setSessionUrl(session.getUrl());
 
@@ -153,13 +165,16 @@ public class PaymentServiceImpl implements PaymentService {
                 scheduledReturn, actualReturn));
     }
 
-    private Session createSession(BigDecimal amount, PaymentType type) {
+    private Session createSession(BigDecimal amount,
+                                  PaymentType type,
+                                  String successUrl,
+                                  String cancelUrl) {
         try {
             return Session.create(
                     SessionCreateParams.builder()
                             .setMode(SessionCreateParams.Mode.PAYMENT)
-                            .setSuccessUrl(SUCCESS_URL)
-                            .setCancelUrl(CANCEL_URL)
+                            .setSuccessUrl(successUrl)
+                            .setCancelUrl(cancelUrl)
                             .addLineItem(
                                     SessionCreateParams.LineItem.builder()
                                             .setQuantity(1L)
