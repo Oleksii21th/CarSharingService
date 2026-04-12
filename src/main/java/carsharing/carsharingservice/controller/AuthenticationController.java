@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 public class AuthenticationController {
     private final UserService userService;
     private final AuthenticationService authenticationService;
@@ -26,7 +26,7 @@ public class AuthenticationController {
     }
 
     @Operation(summary = "Register a new user")
-    @PostMapping("/registration")
+    @PostMapping("/register")
     public UserResponseDto register(@Valid @RequestBody UserRegistrationRequestDto request) {
         return userService.registerUser(request);
     }
