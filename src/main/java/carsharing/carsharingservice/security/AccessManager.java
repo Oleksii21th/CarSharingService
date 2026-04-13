@@ -7,21 +7,26 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AccessManager {
-    private boolean isManager(Authentication authentication) {
+    public boolean isManager(Authentication authentication) {
         return authentication.getAuthorities().stream()
                 .anyMatch(a ->
                         a.getAuthority().equals("ROLE_MANAGER"));
     }
 
     public Long resolveUserId(Authentication authentication, Long resourceUserId) {
-        User currentUser = (User) authentication.getPrincipal();
-        return resourceUserId != null ? resourceUserId : currentUser.getId();
+        if (resourceUserId != null) {
+            return resourceUserId;
+        }
+
+        boolean isManager = isManager(authentication);
+
+        return isManager ? null : ((User) authentication.getPrincipal()).getId();
     }
 
     public void checkOwnerOrManager(Authentication authentication, Long resourceUserId) {
         User currentUser = (User) authentication.getPrincipal();
 
-        boolean isOwner = resourceUserId.equals(currentUser.getId());
+        boolean isOwner = resourceUserId != null && resourceUserId.equals(currentUser.getId());
         boolean isManager = isManager(authentication);
 
         if (!isOwner && !isManager) {

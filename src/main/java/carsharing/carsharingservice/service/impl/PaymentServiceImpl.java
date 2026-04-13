@@ -55,6 +55,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<PaymentResponseDto> findAllPayments(Long userId,
                                                     Authentication authentication) {
+        if (accessManager.isManager(authentication) && userId == null) {
+            return paymentRepository.findAll().stream()
+                    .map(paymentMapper::toDto)
+                    .toList();
+        }
+
         Long targetUserId = accessManager.resolveUserId(authentication, userId);
         accessManager.checkOwnerOrManager(authentication, targetUserId);
 

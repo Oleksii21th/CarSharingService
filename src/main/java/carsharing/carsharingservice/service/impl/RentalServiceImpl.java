@@ -15,6 +15,7 @@ import carsharing.carsharingservice.model.Car;
 import carsharing.carsharingservice.model.Payment;
 import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.model.Rental;
+import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.repository.CarRepository;
 import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
@@ -91,11 +92,27 @@ public class RentalServiceImpl implements RentalService {
     @Override
     public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto,
                                                      Authentication authentication) {
-        Long targetUserId = accessManager.resolveUserId(authentication, paramsDto.userId());
-        accessManager.checkOwnerOrManager(authentication, targetUserId);
 
-        return rentalRepository.findByUserIdAndIsActive(targetUserId, paramsDto.isActive())
-                .stream()
+        boolean isManager = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
+
+        Long userId = paramsDto.userId();
+
+        accessManager.checkOwnerOrManager(authentication, userId);
+
+        List<Rental> rentals;
+
+        if (isManager && userId == null) {
+            rentals = rentalRepository.findByIsActive(paramsDto.isActive());
+        } else {
+            Long targetUserId = userId != null
+                    ? userId
+                    : ((User) authentication.getPrincipal()).getId();
+
+            rentals = rentalRepository.findByUserIdAndIsActive(targetUserId, paramsDto.isActive());
+        }
+
+        return rentals.stream()
                 .map(rentalMapper::toDto)
                 .toList();
     }
