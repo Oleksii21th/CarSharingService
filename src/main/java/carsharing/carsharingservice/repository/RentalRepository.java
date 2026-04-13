@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RentalRepository extends JpaRepository<Rental, Long> {
+    List<Rental> findByIsActive(boolean active);
+
     List<Rental> findByUserIdAndIsActive(Long userId, boolean active);
 
     Optional<Rental> findByUserIdAndId(Long userId, Long rentalId);
