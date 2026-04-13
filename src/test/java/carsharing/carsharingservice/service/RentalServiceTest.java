@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import carsharing.carsharingservice.dto.rental.RentalDetailsDto;
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
@@ -71,6 +72,7 @@ class RentalServiceTest {
     private Car car;
     private Rental rental;
     private RentalRequestDto rentalRequestDto;
+    private RentalDetailsDto rentalDetailsDto;
     private RentalResponseDto rentalResponseDto;
 
     @BeforeEach
@@ -91,6 +93,15 @@ class RentalServiceTest {
                 1L,
                 rentalRequestDto.getRentalDate(),
                 rentalRequestDto.getReturnDate(),
+                null,
+                null
+        );
+
+        rentalDetailsDto = new RentalDetailsDto(
+                1L,
+                rentalRequestDto.getRentalDate(),
+                rentalRequestDto.getReturnDate(),
+                null,
                 null,
                 null
         );
@@ -247,12 +258,12 @@ class RentalServiceTest {
                 .thenReturn((Collection) authCollection);
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
-        when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
+        when(rentalMapper.toDetailsDto(rental)).thenReturn(rentalDetailsDto);
 
-        RentalResponseDto result =
+        RentalDetailsDto result =
                 rentalService.findRentalById(1L, authentication);
 
-        assertThat(result).isEqualTo(rentalResponseDto);
+        assertThat(result).isEqualTo(rentalDetailsDto);
     }
 
     @Test

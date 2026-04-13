@@ -24,5 +24,6 @@ public interface RentalMapper {
     RentalResponseDto toDto(Rental rental);
 
     @InheritConfiguration(name = "toDto")
+    @Mapping(target = "user", source = "user")
     RentalDetailsDto toDetailsDto(Rental rental);
 }
