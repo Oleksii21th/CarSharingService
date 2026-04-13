@@ -1,5 +1,6 @@
 package carsharing.carsharingservice.service;
 
+import carsharing.carsharingservice.dto.rental.RentalDetailsDto;
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
@@ -12,7 +13,7 @@ public interface RentalService {
     List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto,
                                               Authentication authentication);
 
-    RentalResponseDto findRentalById(Long id, Authentication authentication);
+    RentalDetailsDto findRentalById(Long id, Authentication authentication);
 
     RentalResponseDto returnRental(Long userId, Long rentalId);
 }

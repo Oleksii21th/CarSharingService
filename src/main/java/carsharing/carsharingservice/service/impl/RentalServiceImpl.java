@@ -1,5 +1,6 @@
 package carsharing.carsharingservice.service.impl;
 
+import carsharing.carsharingservice.dto.rental.RentalDetailsDto;
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
@@ -100,7 +101,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     @Override
-    public RentalResponseDto findRentalById(Long id, Authentication authentication) {
+    public RentalDetailsDto findRentalById(Long id, Authentication authentication) {
         Rental rental = rentalRepository.findById(id)
                 .orElseThrow(() -> new RentalNotFoundException(id));
 
@@ -108,7 +109,7 @@ public class RentalServiceImpl implements RentalService {
         Long targetUserId = accessManager.resolveUserId(authentication, userId);
         accessManager.checkOwnerOrManager(authentication, targetUserId);
 
-        return rentalMapper.toDto(rental);
+        return rentalMapper.toDetailsDto(rental);
     }
 
     @Override

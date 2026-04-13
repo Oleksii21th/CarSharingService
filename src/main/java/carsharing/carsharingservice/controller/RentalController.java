@@ -1,5 +1,6 @@
 package carsharing.carsharingservice.controller;
 
+import carsharing.carsharingservice.dto.rental.RentalDetailsDto;
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
@@ -45,7 +46,8 @@ public class RentalController {
     @Operation(summary = "Get rental by ID")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/{id}")
-    public RentalResponseDto findRentalById(@PathVariable Long id, Authentication authentication) {
+    public RentalDetailsDto findRentalById(@PathVariable Long id,
+                                           Authentication authentication) {
         return rentalService.findRentalById(id, authentication);
     }
 
