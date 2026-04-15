@@ -15,7 +15,7 @@ import org.hibernate.annotations.Where;
 
 @Entity
 @Where(clause = "is_deleted = false")
-@SQLDelete(sql = "UPDATE payments SET is_deleted = true WHERE id = ?")
+@SQLDelete(sql = "UPDATE payment SET is_deleted = true WHERE id = ?")
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +36,7 @@ public class Payment {
 
     private String sessionId;
 
-    @Column(precision = 10, scale = 2)
+    @Column(name = "amount", precision = 10, scale = 2)
     private BigDecimal amountToPay;
 
     @Column(nullable = false)

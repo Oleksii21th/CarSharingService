@@ -10,6 +10,7 @@ import carsharing.carsharingservice.exception.badrequest.InvalidDateException;
 import carsharing.carsharingservice.exception.badrequest.TwiceReturnedRentalException;
 import carsharing.carsharingservice.exception.notfound.CarNotFoundException;
 import carsharing.carsharingservice.exception.notfound.RentalNotFoundException;
+import carsharing.carsharingservice.exception.notfound.UserNotFoundException;
 import carsharing.carsharingservice.mapper.RentalMapper;
 import carsharing.carsharingservice.model.Car;
 import carsharing.carsharingservice.model.Payment;
@@ -73,15 +74,15 @@ public class RentalServiceImpl implements RentalService {
 
         validateDates(rentalDate, returnDate, currentDate);
 
-        List<Payment> pendingPayments =
-                paymentRepository.findByUserIdAndStatus(userId, PaymentStatus.PENDING);
-        if (!pendingPayments.isEmpty()) {
-            throw new ActivePaymentsException(pendingPayments.get(0).getRental().getId());
-        }
+        validateNoPendingPayments(userId);
 
         Car savedCar = carRepository.save(car);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
         Rental rental = rentalMapper.toModel(rentalDto);
-        rental.setUser(userRepository.findById(userId).get());
+        rental.setUser(user);
         rental.setCar(savedCar);
 
         Rental savedRental = rentalRepository.save(rental);
