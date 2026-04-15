@@ -6,7 +6,7 @@ import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.exception.badrequest.ActivePaymentsException;
 import carsharing.carsharingservice.exception.badrequest.EmptyCarInventoryException;
-import carsharing.carsharingservice.exception.badrequest.InvalidRentalDateException;
+import carsharing.carsharingservice.exception.badrequest.InvalidDateException;
 import carsharing.carsharingservice.exception.badrequest.TwiceReturnedRentalException;
 import carsharing.carsharingservice.exception.notfound.CarNotFoundException;
 import carsharing.carsharingservice.exception.notfound.RentalNotFoundException;
@@ -69,9 +69,9 @@ public class RentalServiceImpl implements RentalService {
 
         LocalDate currentDate = LocalDate.now();
         LocalDate rentalDate = LocalDate.parse(rentalDto.getRentalDate(), FORMATTER);
-        if (rentalDate.isBefore(currentDate)) {
-            throw new InvalidRentalDateException();
-        }
+        LocalDate returnDate = LocalDate.parse(rentalDto.getReturnDate(), FORMATTER);
+
+        validateDates(rentalDate, returnDate, currentDate);
 
         List<Payment> pendingPayments =
                 paymentRepository.findByUserIdAndStatus(userId, PaymentStatus.PENDING);
@@ -87,6 +87,34 @@ public class RentalServiceImpl implements RentalService {
         Rental savedRental = rentalRepository.save(rental);
         telegramNotificationService.sendRentalCreatedNotification(savedRental);
         return rentalMapper.toDto(savedRental);
+    }
+
+    private void validateDates(LocalDate rentalDate,
+                               LocalDate returnDate,
+                               LocalDate currentDate) {
+
+        if (rentalDate.isBefore(currentDate)) {
+            throw new InvalidDateException("Rental date cannot be before today");
+        }
+
+        if (returnDate.isBefore(rentalDate)) {
+            throw new InvalidDateException("Return date cannot be before rental date");
+        }
+
+        if (returnDate.isBefore(currentDate)) {
+            throw new InvalidDateException("Return date cannot be in the past");
+        }
+    }
+
+    private void validateNoPendingPayments(Long userId) {
+        List<Payment> pendingPayments =
+                paymentRepository.findByUserIdAndStatus(userId, PaymentStatus.PENDING);
+
+        if (!pendingPayments.isEmpty()) {
+            throw new ActivePaymentsException(
+                    pendingPayments.get(0).getRental().getId()
+            );
+        }
     }
 
     @Override
