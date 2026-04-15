@@ -12,7 +12,7 @@ import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.exception.badrequest.ActivePaymentsException;
 import carsharing.carsharingservice.exception.badrequest.EmptyCarInventoryException;
-import carsharing.carsharingservice.exception.badrequest.InvalidRentalDateException;
+import carsharing.carsharingservice.exception.badrequest.InvalidDateException;
 import carsharing.carsharingservice.exception.badrequest.TwiceReturnedRentalException;
 import carsharing.carsharingservice.exception.notfound.CarNotFoundException;
 import carsharing.carsharingservice.exception.notfound.RentalNotFoundException;
@@ -164,7 +164,7 @@ class RentalServiceTest {
         );
         when(carRepository.findById(1L)).thenReturn(Optional.of(car));
 
-        assertThrows(InvalidRentalDateException.class, () -> rentalService.save(1L, dto));
+        assertThrows(InvalidDateException.class, () -> rentalService.save(1L, dto));
     }
 
     @Test
