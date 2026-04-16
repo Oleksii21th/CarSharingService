@@ -61,7 +61,7 @@ class PaymentControllerTest extends AbstractControllerTest {
     void findAllPayments_UserHasPayments_ReturnsPaymentsList() throws Exception {
         setMockCustomerUser();
 
-        MvcResult result = mockMvc.perform(get("/payments")
+        MvcResult result = mockMvc.perform(get("/api/payments")
                         .param("user_id", "1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -88,7 +88,7 @@ class PaymentControllerTest extends AbstractControllerTest {
         PaymentRequestDto requestDto = new PaymentRequestDto(2L, "PAYMENT");
         String jsonRequest = objectMapper.writeValueAsString(requestDto);
 
-        MvcResult result = mockMvc.perform(post("/payments")
+        MvcResult result = mockMvc.perform(post("/api/payments")
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -114,7 +114,7 @@ class PaymentControllerTest extends AbstractControllerTest {
         try (MockedStatic<Session> mockedStatic = Mockito.mockStatic(Session.class)) {
             mockedStatic.when(() -> Session.retrieve("session1")).thenReturn(mockSession);
 
-            MvcResult result = mockMvc.perform(get("/payments/success")
+            MvcResult result = mockMvc.perform(get("/api/payments/success")
                             .param("session_id", "session1")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -137,7 +137,7 @@ class PaymentControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void paymentCancel_ValidSessionId_ReturnsInfoMessage() throws Exception {
-        MvcResult result = mockMvc.perform(get("/payments/cancel")
+        MvcResult result = mockMvc.perform(get("/api/payments/cancel")
                         .param("session_id", "session1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

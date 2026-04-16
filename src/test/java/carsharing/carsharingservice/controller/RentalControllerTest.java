@@ -50,7 +50,7 @@ class RentalControllerTest extends AbstractControllerTest {
     void findRentalById_ValidId_ReturnsRental() throws Exception {
         setMockCustomerUser();
 
-        MvcResult result = mockMvc.perform(get("/rentals/2")
+        MvcResult result = mockMvc.perform(get("/api/rentals/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -69,7 +69,7 @@ class RentalControllerTest extends AbstractControllerTest {
     void findRentalsByUser_ValidParams_ReturnsList() throws Exception {
         setMockCustomerUser();
 
-        MvcResult result = mockMvc.perform(get("/rentals")
+        MvcResult result = mockMvc.perform(get("/api/rentals")
                         .param("userId", "1")
                         .param("isActive", "true")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -100,7 +100,7 @@ class RentalControllerTest extends AbstractControllerTest {
 
         String jsonRequest = objectMapper.writeValueAsString(dto);
 
-        MvcResult result = mockMvc.perform(post("/rentals")
+        MvcResult result = mockMvc.perform(post("/api/rentals")
                         .param("userId", "1")
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -119,7 +119,7 @@ class RentalControllerTest extends AbstractControllerTest {
     void returnRental_ValidId_ReturnsUpdatedRental() throws Exception {
         setMockCustomerUser();
 
-        MvcResult result = mockMvc.perform(post("/rentals/2/return"))
+        MvcResult result = mockMvc.perform(post("/api/rentals/2/return"))
                 .andExpect(status().isOk())
                 .andReturn();
 
