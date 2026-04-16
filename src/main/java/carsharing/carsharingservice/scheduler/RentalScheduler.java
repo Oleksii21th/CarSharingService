@@ -25,7 +25,7 @@ public class RentalScheduler {
         LocalDate today = LocalDate.now();
 
         List<Rental> overdueRentals = rentalRepository
-                .findByReturnDateBeforeAndActualReturnDateIsNull(today);
+                .findOverdueRentals(today);
 
         if (overdueRentals.isEmpty()) {
             telegramNotificationService.sendNoOverduesNotification();

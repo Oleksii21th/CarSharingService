@@ -7,10 +7,12 @@ import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
 import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.service.RentalService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,7 +32,7 @@ public class RentalController {
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PostMapping
     public RentalResponseDto createRental(Authentication authentication,
-                                          @RequestBody RentalRequestDto rentalDto) {
+                                          @RequestBody @Valid RentalRequestDto rentalDto) {
         User user = (User) authentication.getPrincipal();
         return rentalService.save(user.getId(), rentalDto);
     }
@@ -38,8 +40,9 @@ public class RentalController {
     @Operation(summary = "Get rentals for authenticated user")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping
-    public List<RentalResponseDto> findRentalsByUser(RentalSearchParametersDto paramsDto,
-                                                     Authentication authentication) {
+    public List<RentalResponseDto> findRentalsByUser(
+            @Valid @ModelAttribute RentalSearchParametersDto paramsDto,
+            Authentication authentication) {
         return rentalService.findRentalsByUser(paramsDto, authentication);
     }
 

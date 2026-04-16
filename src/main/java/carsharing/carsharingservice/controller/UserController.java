@@ -6,6 +6,7 @@ import carsharing.carsharingservice.dto.user.UserUpdateRequestDto;
 import carsharing.carsharingservice.dto.user.UserWithRoleResponseDto;
 import carsharing.carsharingservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +29,9 @@ public class UserController {
     @Operation(summary = "Update user role", description = "Requires MANAGER role")
     @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{id}/role")
-    public UserWithRoleResponseDto updateUserRole(@PathVariable("id") Long userId,
-                                                  @RequestBody RoleUpdateRequestDto updatedRole) {
+    public UserWithRoleResponseDto updateUserRole(
+            @PathVariable("id") Long userId,
+            @RequestBody @Valid RoleUpdateRequestDto updatedRole) {
         return userService.updateUserRole(userId, updatedRole);
     }
 
@@ -44,7 +46,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @PatchMapping("/me")
     public UserResponseDto updateMyProfile(Authentication authentication,
-                                           @RequestBody UserUpdateRequestDto userDto) {
+                                           @RequestBody @Valid UserUpdateRequestDto userDto) {
         return userService.updateProfile(authentication, userDto);
     }
 }
