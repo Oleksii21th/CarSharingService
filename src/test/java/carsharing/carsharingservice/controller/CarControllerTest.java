@@ -34,7 +34,7 @@ class CarControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void findAllCars_DefaultData_ReturnsCarsList() throws Exception {
-        MvcResult result = mockMvc.perform(get("/cars")
+        MvcResult result = mockMvc.perform(get("/api/cars")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -52,7 +52,7 @@ class CarControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void findCarById_ValidId_ReturnsCar() throws Exception {
-        MvcResult result = mockMvc.perform(get("/cars/2")
+        MvcResult result = mockMvc.perform(get("/api/cars/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -76,7 +76,7 @@ class CarControllerTest extends AbstractControllerTest {
 
         String jsonRequest = objectMapper.writeValueAsString(requestDto);
 
-        MvcResult result = mockMvc.perform(post("/cars")
+        MvcResult result = mockMvc.perform(post("/api/cars")
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -100,7 +100,7 @@ class CarControllerTest extends AbstractControllerTest {
 
         String json = objectMapper.writeValueAsString(requestDto);
 
-        MvcResult result = mockMvc.perform(patch("/cars/2")
+        MvcResult result = mockMvc.perform(patch("/api/cars/2")
                         .content(json)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -116,7 +116,7 @@ class CarControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"MANAGER"})
     void deleteCarById_ValidId_ReturnsIsOk() throws Exception {
-        mockMvc.perform(delete("/cars/2")
+        mockMvc.perform(delete("/api/cars/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

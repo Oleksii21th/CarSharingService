@@ -35,7 +35,7 @@ class UserControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void getMyProfile_AuthenticatedUser_ReturnsProfile() throws Exception {
-        MvcResult result = mockMvc.perform(get("/users/me")
+        MvcResult result = mockMvc.perform(get("/api/users/me")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -61,7 +61,7 @@ class UserControllerTest extends AbstractControllerTest {
 
         String json = objectMapper.writeValueAsString(updateDto);
 
-        MvcResult result = mockMvc.perform(patch("/users/me")
+        MvcResult result = mockMvc.perform(patch("/api/users/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -83,7 +83,7 @@ class UserControllerTest extends AbstractControllerTest {
 
         String json = objectMapper.writeValueAsString(roleUpdate);
 
-        MvcResult result = mockMvc.perform(put("/users/1/role")
+        MvcResult result = mockMvc.perform(put("/api/users/1/role")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
