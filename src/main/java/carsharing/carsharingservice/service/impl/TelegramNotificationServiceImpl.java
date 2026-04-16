@@ -1,6 +1,7 @@
 package carsharing.carsharingservice.service.impl;
 
 import carsharing.carsharingservice.config.TelegramProperties;
+import carsharing.carsharingservice.model.Payment;
 import carsharing.carsharingservice.model.Rental;
 import carsharing.carsharingservice.service.TelegramNotificationService;
 import org.springframework.http.HttpEntity;
@@ -54,6 +55,26 @@ public class TelegramNotificationServiceImpl implements TelegramNotificationServ
                 rental.getCar().getType(),
                 rental.getReturnDate(),
                 java.time.LocalDate.now()
+        );
+
+        sendMessage(message);
+    }
+
+    @Override
+    public void sendPaymentSuccessNotification(Payment payment) {
+        String message = String.format(
+                "Płatność zakończona sukcesem!\n\n"
+                        + "Użytkownik: %s %s (%s)\n"
+                        + "Kwota: %s\n"
+                        + "ID wynajmu: %d\n"
+                        + "Samochód: %s %s",
+                payment.getRental().getUser().getFirstName(),
+                payment.getRental().getUser().getLastName(),
+                payment.getRental().getUser().getUsername(),
+                payment.getAmountToPay(),
+                payment.getRental().getId(),
+                payment.getRental().getCar().getBrand(),
+                payment.getRental().getCar().getModel()
         );
 
         sendMessage(message);

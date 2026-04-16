@@ -13,6 +13,7 @@ import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
 import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.PaymentService;
+import carsharing.carsharingservice.service.TelegramNotificationService;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
@@ -41,15 +42,18 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentMapper paymentMapper;
     private final AccessManager accessManager;
     private final String stripeSecretKey = System.getenv("STRIPE_SECRET_KEY");
+    private final TelegramNotificationService telegramNotificationService;
 
     public PaymentServiceImpl(PaymentRepository paymentRepository,
                               RentalRepository rentalRepository,
                               PaymentMapper paymentMapper,
-                              AccessManager accessManager) {
+                              AccessManager accessManager,
+                              TelegramNotificationService telegramNotificationService) {
         this.paymentRepository = paymentRepository;
         this.rentalRepository = rentalRepository;
         this.paymentMapper = paymentMapper;
         this.accessManager = accessManager;
+        this.telegramNotificationService = telegramNotificationService;
     }
 
     @Override
@@ -148,7 +152,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             payment.setStatus(PaymentStatus.PAID);
             paymentRepository.save(payment);
-
+            telegramNotificationService.sendPaymentSuccessNotification(payment);
         } catch (StripeException exception) {
             throw new RuntimeException("Failed to verify Stripe session", exception);
         }

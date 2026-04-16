@@ -50,6 +50,8 @@ class PaymentServiceTest {
     private PaymentMapper paymentMapper;
     @Mock
     private AccessManager accessManager;
+    @Mock
+    private TelegramNotificationService telegramNotificationService;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -166,6 +168,9 @@ class PaymentServiceTest {
         PaymentResponseFullInfoDto fullDto = new PaymentResponseFullInfoDto(
                 1L, 1L, "FINE", BigDecimal.valueOf(1), null
         );
+
+        Mockito.doNothing().when(telegramNotificationService)
+                .sendPaymentSuccessNotification(Mockito.any());
 
         when(paymentRepository.findBySessionId("session1")).thenReturn(Optional.of(payment));
         when(paymentRepository.save(payment)).thenReturn(payment);

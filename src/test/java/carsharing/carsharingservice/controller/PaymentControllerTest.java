@@ -15,6 +15,7 @@ import carsharing.carsharingservice.model.Payment;
 import carsharing.carsharingservice.model.PaymentStatus;
 import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.repository.PaymentRepository;
+import carsharing.carsharingservice.service.TelegramNotificationService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.stripe.model.checkout.Session;
 import java.util.List;
@@ -28,10 +29,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PaymentControllerTest extends AbstractControllerTest {
+    @MockitoBean
+    private TelegramNotificationService telegramNotificationService;
 
     static {
         removeAllSqlFilePaths = List.of(
@@ -78,6 +82,9 @@ class PaymentControllerTest extends AbstractControllerTest {
     void createPayment_ValidRequestDto_ReturnsCreatedPayment() throws Exception {
         setMockCustomerUser();
 
+        Mockito.doNothing().when(telegramNotificationService)
+                .sendPaymentSuccessNotification(Mockito.any());
+
         PaymentRequestDto requestDto = new PaymentRequestDto(2L, "PAYMENT");
         String jsonRequest = objectMapper.writeValueAsString(requestDto);
 
@@ -98,6 +105,9 @@ class PaymentControllerTest extends AbstractControllerTest {
     @Test
     @WithMockUser(roles = {"CUSTOMER"})
     void paymentSuccess_ValidSessionId_ReturnsFullInfo() throws Exception {
+        Mockito.doNothing().when(telegramNotificationService)
+                .sendPaymentSuccessNotification(Mockito.any());
+
         Session mockSession = mock(Session.class);
         when(mockSession.getPaymentStatus()).thenReturn("paid");
 
