@@ -17,8 +17,8 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
 
     Optional<Rental> findByUserIdAndId(Long userId, Long rentalId);
 
-    @Query("SELECT r FROM Rental r " +
-            "WHERE r.returnDate <= :today " +
-            "AND r.actualReturnDate IS NULL")
+    @Query("SELECT r FROM Rental r "
+            + "WHERE r.returnDate <= :today "
+            + "AND r.actualReturnDate IS NULL")
     List<Rental> findOverdueRentals(@Param("today") LocalDate today);
 }
