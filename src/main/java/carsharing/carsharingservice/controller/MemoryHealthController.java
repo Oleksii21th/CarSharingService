@@ -16,7 +16,7 @@ public class MemoryHealthController {
     }
 
     @Operation(summary = "Returns current memory usage and health information")
-    @GetMapping("/memory-health")
+    @GetMapping("/api/memory-health")
     public Health getMemoryHealth() {
         return memoryHealthIndicator.health();
     }
