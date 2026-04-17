@@ -27,6 +27,9 @@ public class PaymentResponseDto {
         this.description = description;
     }
 
+    public PaymentResponseDto() {
+    }
+
     public Long getId() {
         return id;
     }

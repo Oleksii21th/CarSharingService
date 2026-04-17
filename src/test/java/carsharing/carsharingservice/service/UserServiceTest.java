@@ -2,6 +2,9 @@ package carsharing.carsharingservice.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -113,6 +116,23 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Updates all user fields and saves entity")
+    void updateProfile_UpdatesAllFields() {
+        when(authentication.getName()).thenReturn("user@test.com");
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.toDto(user)).thenReturn(userResponseDto);
+
+        userService.updateProfile(authentication, updateDto);
+
+        assertThat(user.getUsername()).isEqualTo(updateDto.email());
+        assertThat(user.getFirstName()).isEqualTo(updateDto.firstName());
+        assertThat(user.getLastName()).isEqualTo(updateDto.lastName());
+
+        verify(userRepository).save(user);
+    }
+
+    @Test
     @DisplayName("Registers user with valid data and returns saved user DTO")
     void registerUser_ValidDto_ReturnsSavedUser() {
         when(userRepository.findByEmail(registrationDto.email())).thenReturn(Optional.empty());
@@ -142,6 +162,53 @@ class UserServiceTest {
 
         verify(userRepository).findByEmail(registrationDto.email());
         verifyNoMoreInteractions(userRepository, passwordEncoder, userMapper);
+    }
+
+    @Test
+    @DisplayName("Set default role CUSTOMER during registration")
+    void registerUser_SetsDefaultRole_OK() {
+        when(userRepository.findByEmail(registrationDto.email()))
+                .thenReturn(Optional.empty());
+        when(userMapper.toModel(registrationDto)).thenReturn(user);
+        when(passwordEncoder.encode(registrationDto.password()))
+                .thenReturn("test");
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.toDto(user)).thenReturn(userResponseDto);
+
+        userService.registerUser(registrationDto);
+
+        assertThat(user.getRole()).isEqualTo(Role.CUSTOMER);
+    }
+
+    @Test
+    @DisplayName("Encodes password before saving user")
+    void registerUser_EncodesPassword() {
+        when(userRepository.findByEmail(registrationDto.email()))
+                .thenReturn(Optional.empty());
+        when(userMapper.toModel(registrationDto)).thenReturn(user);
+        when(passwordEncoder.encode(anyString()))
+                .thenReturn("testPassword");
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.toDto(user)).thenReturn(userResponseDto);
+
+        userService.registerUser(registrationDto);
+
+        assertThat(user.getPassword()).isEqualTo("testPassword");
+
+        verify(passwordEncoder).encode(registrationDto.password());
+    }
+
+    @Test
+    @DisplayName("Does not save user when email already exists")
+    void registerUser_EmailExists_NoSave() {
+        when(userRepository.findByEmail(registrationDto.email()))
+                .thenReturn(Optional.of(user));
+
+        assertThrows(UserAlreadyExistsRegistrationException.class,
+                () -> userService.registerUser(registrationDto));
+
+        verify(userRepository).findByEmail(registrationDto.email());
+        verify(userRepository, times(0)).save(any());
     }
 
     @Test
@@ -177,5 +244,48 @@ class UserServiceTest {
 
         verify(userRepository).findById(99L);
         verifyNoMoreInteractions(userRepository, userMapper);
+    }
+
+    @Test
+    @DisplayName("Updates role on user entity before saving")
+    void updateUserRole_ChangesRole() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.toDtoOnlyWithUpdatingRole(user))
+                .thenReturn(new UserWithRoleResponseDto());
+
+        RoleUpdateRequestDto dto = new RoleUpdateRequestDto(Role.MANAGER);
+
+        userService.updateUserRole(1L, dto);
+
+        assertThat(user.getRole()).isEqualTo(Role.MANAGER);
+    }
+
+    @Test
+    @DisplayName("Saves user once when updating role")
+    void updateUserRole_SavesOnce() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.toDtoOnlyWithUpdatingRole(user))
+                .thenReturn(new UserWithRoleResponseDto());
+
+        userService.updateUserRole(1L, new RoleUpdateRequestDto(Role.MANAGER));
+
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    @DisplayName("Returns current user profile from Authentication")
+    void getProfile_ValidUser_ReturnsDto() {
+        when(authentication.getName()).thenReturn("user@test.com");
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(userResponseDto);
+
+        UserResponseDto result = userService.getProfile(authentication);
+
+        assertThat(result).isEqualTo(userResponseDto);
+
+        verify(userRepository).findByEmail("user@test.com");
+        verify(userMapper).toDto(user);
     }
 }
