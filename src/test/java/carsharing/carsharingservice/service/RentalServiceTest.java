@@ -2,7 +2,10 @@ package carsharing.carsharingservice.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -182,6 +185,69 @@ class RentalServiceTest {
     }
 
     @Test
+    @DisplayName("Decreases car inventory and sends Telegram notification when rental is saved")
+    void save_DecreasesInventoryAndSendsNotification_OK() {
+        when(carRepository.findById(1L)).thenReturn(Optional.of(car));
+        when(paymentRepository.findByUserIdAndStatus(1L, PaymentStatus.PENDING))
+                .thenReturn(List.of());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(rentalMapper.toModel(rentalRequestDto)).thenReturn(rental);
+        when(rentalRepository.save(rental)).thenReturn(rental);
+        when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
+
+        rentalService.save(1L, rentalRequestDto);
+
+        assertThat(car.getInventory()).isEqualTo(0);
+        verify(carRepository).save(car);
+        verify(telegramNotificationService).sendRentalCreatedNotification(rental);
+    }
+
+    @Test
+    @DisplayName("Does not save car or rental when inventory is zero")
+    void save_InventoryZero_NoSave() {
+        car.setInventory(0);
+        when(carRepository.findById(1L)).thenReturn(Optional.of(car));
+
+        assertThrows(EmptyCarInventoryException.class,
+                () -> rentalService.save(1L, rentalRequestDto));
+
+        verify(carRepository, times(0)).save(any());
+        verify(rentalRepository, times(0)).save(any());
+    }
+
+    @Test
+    @DisplayName("Throws InvalidDateException when return date is before rental date")
+    void save_ReturnBeforeRental_ThrowsException() {
+        RentalRequestDto dto = new RentalRequestDto(
+                LocalDate.now().plusDays(5).format(FORMATTER),
+                LocalDate.now().plusDays(1).format(FORMATTER),
+                1L
+        );
+
+        when(carRepository.findById(1L)).thenReturn(Optional.of(car));
+
+        assertThrows(InvalidDateException.class,
+                () -> rentalService.save(1L, dto));
+
+        verify(rentalRepository, times(0)).save(any());
+    }
+
+    @Test
+    @DisplayName("Throws exception when return date is in the past")
+    void save_ReturnDateInPast_ThrowsException() {
+        RentalRequestDto dto = new RentalRequestDto(
+                LocalDate.now().plusDays(1).format(FORMATTER),
+                LocalDate.now().minusDays(1).format(FORMATTER),
+                1L
+        );
+
+        when(carRepository.findById(1L)).thenReturn(Optional.of(car));
+
+        assertThrows(InvalidDateException.class,
+                () -> rentalService.save(1L, dto));
+    }
+
+    @Test
     @DisplayName("Customer sees only own rentals")
     void findRentalsByUser_Customer_ReturnsOwnRentals() {
         RentalSearchParametersDto params =
@@ -239,6 +305,78 @@ class RentalServiceTest {
                 rentalService.findRentalsByUser(params, authentication);
 
         assertThat(result).containsExactly(rentalResponseDto);
+    }
+
+    @Test
+    @DisplayName("Manager with userId fetches specific user rentals")
+    void findRentalsByUser_ManagerWithUserId_OK() {
+        Authentication authentication = mock(Authentication.class);
+
+        User manager = new User();
+        manager.setId(11L);
+
+        SimpleGrantedAuthority simpleGrantedAuthority =
+                new SimpleGrantedAuthority("ROLE_MANAGER");
+        Collection<SimpleGrantedAuthority> authCollection =
+                Collections.singleton(simpleGrantedAuthority);
+
+        when(authentication.getAuthorities())
+                .thenReturn((Collection) authCollection);
+        when(authentication.getPrincipal()).thenReturn(manager);
+
+        RentalSearchParametersDto params =
+                new RentalSearchParametersDto(1L, true);
+
+        when(rentalRepository.findByUserIdAndIsActive(1L, true))
+                .thenReturn(List.of(rental));
+
+        when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
+
+        List<RentalResponseDto> result =
+                rentalService.findRentalsByUser(params, authentication);
+
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Manager fetches all rentals when userId is null")
+    void findRentalsByUser_ManagerNoUserId_ReturnsAll() {
+        Authentication authentication = mock(Authentication.class);
+        SimpleGrantedAuthority simpleGrantedAuthority =
+                new SimpleGrantedAuthority("ROLE_MANAGER");
+        Collection<SimpleGrantedAuthority> authCollection =
+                Collections.singleton(simpleGrantedAuthority);
+
+        when(authentication.getAuthorities())
+                .thenReturn((Collection) authCollection);
+
+        RentalSearchParametersDto params =
+                new RentalSearchParametersDto(null, true);
+
+        when(rentalRepository.findByIsActive(true))
+                .thenReturn(List.of(rental));
+
+        when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
+
+        List<RentalResponseDto> result =
+                rentalService.findRentalsByUser(params, authentication);
+
+        assertThat(result).hasSize(1);
+        verify(rentalRepository).findByIsActive(true);
+    }
+
+    @Test
+    @DisplayName("Throws AccessDeniedException when user is not owner")
+    void findRentalById_AccessDenied_ThrowsException() {
+        Authentication auth = mock(Authentication.class);
+
+        when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
+
+        doThrow(new AccessDeniedException("denied"))
+                .when(accessManager).checkOwnerOrManager(auth, 1L);
+
+        assertThrows(AccessDeniedException.class,
+                () -> rentalService.findRentalById(1L, auth));
     }
 
     @Test
@@ -302,6 +440,30 @@ class RentalServiceTest {
                 () -> rentalService.findRentalById(99L, authentication));
     }
 
+    @DisplayName("Manager can access any rental by id")
+    void findRentalById_ManagerAccess_OK() {
+        Authentication authentication = mock(Authentication.class);
+        SimpleGrantedAuthority simpleGrantedAuthority =
+                new SimpleGrantedAuthority("ROLE_MANAGER");
+        Collection<SimpleGrantedAuthority> authCollection =
+                Collections.singleton(simpleGrantedAuthority);
+
+        when(authentication.getAuthorities())
+                .thenReturn((Collection) authCollection);
+
+        User other = new User();
+        other.setId(999L);
+        rental.setUser(other);
+
+        when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
+        when(rentalMapper.toDetailsDto(rental)).thenReturn(rentalDetailsDto);
+
+        RentalDetailsDto result =
+                rentalService.findRentalById(1L, authentication);
+
+        assertThat(result).isEqualTo(rentalDetailsDto);
+    }
+
     @Test
     @DisplayName("Returns rental successfully")
     void returnRental_Valid_ReturnsDto() {
@@ -335,5 +497,37 @@ class RentalServiceTest {
 
         assertThrows(RentalNotFoundException.class, () ->
                 rentalService.returnRental(1L, 99L));
+    }
+
+    @Test
+    @DisplayName("Increases car inventory when rental is returned")
+    void returnRental_IncreasesInventory_OK() {
+        when(rentalRepository.findByUserIdAndId(1L, 1L))
+                .thenReturn(Optional.of(rental));
+
+        when(rentalRepository.save(rental)).thenReturn(rental);
+        when(rentalMapper.toDto(rental)).thenReturn(rentalResponseDto);
+
+        int before = car.getInventory();
+
+        rentalService.returnRental(1L, 1L);
+
+        assertThat(car.getInventory()).isEqualTo(before + 1);
+        verify(carRepository).save(car);
+    }
+
+    @Test
+    @DisplayName("Does not modify car when rental already returned")
+    void returnRental_AlreadyReturned_NoCarUpdate() {
+        rental.setActive(false);
+
+        when(rentalRepository.findByUserIdAndId(1L, 1L))
+                .thenReturn(Optional.of(rental));
+
+        assertThrows(TwiceReturnedRentalException.class,
+                () -> rentalService.returnRental(1L, 1L));
+
+        verify(carRepository, times(0)).save(any());
+        verify(rentalRepository, times(0)).save(any());
     }
 }

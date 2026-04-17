@@ -3,7 +3,10 @@ package carsharing.carsharingservice.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,6 +83,136 @@ class PaymentServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatus()).isEqualTo("PENDING");
         assertThat(result.get(0).getType()).isEqualTo("PAYMENT");
+    }
+
+    @Test
+    @DisplayName("Returns existing pending payment instead of creating new session")
+    void savePaymentSession_ExistingPendingPayment_ReturnsExisting() {
+        Rental rental = new Rental();
+        rental.setId(1L);
+
+        Payment existing = new Payment();
+        existing.setStatus(PaymentStatus.PENDING);
+
+        PaymentResponseDto dto = new PaymentResponseDto();
+
+        Authentication auth = mock(Authentication.class);
+
+        when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
+        when(accessManager.resolveUserId(auth, null)).thenReturn(null);
+        doNothing().when(accessManager).checkOwnerOrManager(auth, null);
+
+        when(paymentRepository.findByRentalIdAndType(1L, PaymentType.PAYMENT))
+                .thenReturn(List.of(existing));
+        when(paymentMapper.toDto(existing)).thenReturn(dto);
+
+        PaymentRequestDto request = new PaymentRequestDto(1L, "PAYMENT");
+
+        PaymentResponseDto result = paymentService.savePaymentSession(request, auth);
+
+        assertThat(result).isEqualTo(dto);
+        verify(paymentRepository, times(0)).save(any());
+    }
+
+    @Test
+    @DisplayName("Calculates fine payment correctly")
+    void savePaymentSession_FinePayment_CalculatesCorrectAmount() {
+        Car car = new Car();
+        car.setDailyFee(BigDecimal.valueOf(10));
+
+        Rental rental = new Rental();
+        rental.setId(1L);
+        rental.setCar(car);
+        rental.setRentalDate(LocalDate.now().minusDays(5));
+        rental.setReturnDate(LocalDate.now().minusDays(3));
+
+        Payment savedPayment = new Payment();
+
+        Authentication auth = mock(Authentication.class);
+
+        when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
+        when(accessManager.resolveUserId(auth, null)).thenReturn(null);
+        doNothing().when(accessManager).checkOwnerOrManager(auth, null);
+
+        when(paymentRepository.findByRentalIdAndType(any(), any()))
+                .thenReturn(List.of());
+
+        when(paymentRepository.save(any())).thenReturn(savedPayment);
+
+        PaymentResponseDto responseDto = new PaymentResponseDto(
+                1L, 1L, "PENDING", "PAYMENT", "test",
+                BigDecimal.valueOf(1), "Go to this link to finish payment: test"
+        );
+
+        when(paymentMapper.toDto(any())).thenReturn(responseDto);
+
+        Session session = mock(Session.class);
+        when(session.getId()).thenReturn("test");
+        when(session.getUrl()).thenReturn("url");
+
+        try (MockedStatic<Session> mocked = mockStatic(Session.class);
+                MockedStatic<ServletUriComponentsBuilder> uriMock =
+                        mockStatic(ServletUriComponentsBuilder.class)) {
+
+            mocked.when(() -> Session.create(Mockito.<SessionCreateParams>any()))
+                    .thenReturn(session);
+
+            ServletUriComponentsBuilder builder = mock(ServletUriComponentsBuilder.class);
+            when(builder.build()).thenReturn(UriComponentsBuilder.fromUriString("http://x").build());
+            uriMock.when(ServletUriComponentsBuilder::fromCurrentContextPath)
+                    .thenReturn(builder);
+
+            paymentService.savePaymentSession(
+                    new PaymentRequestDto(1L, "FINE"), auth);
+        }
+
+        verify(paymentRepository).save(any());
+    }
+
+    @Test
+    @DisplayName("Throws RuntimeException when Stripe session creation fails")
+    void savePaymentSession_StripeException_Throws() {
+        Car car = new Car();
+        car.setDailyFee(BigDecimal.valueOf(1));
+
+        Rental rental = new Rental();
+        rental.setId(1L);
+        rental.setCar(car);
+
+        rental.setRentalDate(LocalDate.now().minusDays(2));
+        rental.setReturnDate(LocalDate.now().plusDays(2));
+
+        Authentication authentication = mock(Authentication.class);
+
+        when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
+        when(accessManager.resolveUserId(authentication, null)).thenReturn(null);
+        doNothing().when(accessManager).checkOwnerOrManager(authentication, null);
+
+        when(paymentRepository.findByRentalIdAndType(any(), any()))
+                .thenReturn(List.of());
+
+        try (MockedStatic<Session> mocked = mockStatic(Session.class);
+                MockedStatic<ServletUriComponentsBuilder> uriMock =
+                        mockStatic(ServletUriComponentsBuilder.class)) {
+
+            mocked.when(() -> Session.create(Mockito.<SessionCreateParams>any()))
+                       .thenThrow(new com.stripe.exception.ApiException(
+                            "Stripe fail", null, null, 500, null));
+
+            ServletUriComponentsBuilder builder = mock(ServletUriComponentsBuilder.class);
+            when(builder.build()).thenReturn(
+                    UriComponentsBuilder.fromUriString("http://x").build()
+            );
+
+            uriMock.when(ServletUriComponentsBuilder::fromCurrentContextPath)
+                    .thenReturn(builder);
+
+            assertThatThrownBy(() ->
+                    paymentService.savePaymentSession(
+                            new PaymentRequestDto(1L, "PAYMENT"), authentication))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Failed to create Stripe session");
+        }
     }
 
     @Test
@@ -169,7 +302,7 @@ class PaymentServiceTest {
                 1L, 1L, "FINE", BigDecimal.valueOf(1), null
         );
 
-        Mockito.doNothing().when(telegramNotificationService)
+        doNothing().when(telegramNotificationService)
                 .sendPaymentSuccessNotification(Mockito.any());
 
         when(paymentRepository.findBySessionId("session1")).thenReturn(Optional.of(payment));
@@ -186,6 +319,58 @@ class PaymentServiceTest {
 
             assertThat(result.getType()).isEqualTo("FINE");
             verify(paymentRepository).save(payment);
+        }
+    }
+
+    @Test
+    @DisplayName("Throws IllegalStateException when Stripe payment status is not paid")
+    void updatePaymentStatus_NotPaid_ThrowsException() {
+        Payment payment = new Payment();
+        payment.setSessionId("test");
+
+        when(paymentRepository.findBySessionId("test"))
+                .thenReturn(Optional.of(payment));
+
+        Session stripeSession = mock(Session.class);
+        when(stripeSession.getPaymentStatus()).thenReturn("unpaid");
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+
+            stripe.when(() -> Session.retrieve("test"))
+                    .thenReturn(stripeSession);
+
+            assertThatThrownBy(() ->
+                    paymentService.updatePaymentStatus("test"))
+                    .isInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    @Test
+    @DisplayName("Sends telegram notification when payment status is successfully updated to paid")
+    void updatePaymentStatus_Success_SendsTelegramNotification() {
+        Payment payment = new Payment();
+        payment.setSessionId("test");
+
+        PaymentResponseFullInfoDto dto =
+                mock(PaymentResponseFullInfoDto.class);
+
+        when(paymentRepository.findBySessionId("test"))
+                .thenReturn(Optional.of(payment));
+
+        when(paymentMapper.toFullInfoDto(payment)).thenReturn(dto);
+
+        Session stripeSession = mock(Session.class);
+        when(stripeSession.getPaymentStatus()).thenReturn("paid");
+
+        try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
+
+            stripe.when(() -> Session.retrieve("test"))
+                    .thenReturn(stripeSession);
+
+            paymentService.updatePaymentStatus("test");
+
+            verify(telegramNotificationService)
+                    .sendPaymentSuccessNotification(payment);
         }
     }
 

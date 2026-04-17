@@ -89,6 +89,32 @@ class CarControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void createCar_Unauthorized_Returns401() throws Exception {
+        CarRequestDto dto = new CarRequestDto();
+        dto.setBrand("Test");
+        dto.setModel("Test");
+        dto.setType("SEDAN");
+        dto.setInventory(1);
+        dto.setDailyFee(BigDecimal.valueOf(10));
+
+        mockMvc.perform(post("/api/cars")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = {"MANAGER"})
+    void createCar_InvalidDto_Returns400() throws Exception {
+        CarRequestDto dto = new CarRequestDto();
+
+        mockMvc.perform(post("/api/cars")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @WithMockUser(roles = {"MANAGER"})
     void updateCar_ValidRequestDto_ReturnsUpdatedCar() throws Exception {
         CarRequestDto requestDto = new CarRequestDto();

@@ -67,35 +67,40 @@ src/
 ## Endpoints
 
 ### Available for all users
-| Method | Endpoint       | Description |
-|--------|----------------|------------|
-| GET    | `/cars`        | List available cars |
-| POST   | `/register`    | Register new user |
-| POST   | `/login`       | Authenticate user & get JWT |
+| Method | Endpoint                  | Description |
+|--------|---------------------------|------------|
+| GET    | `/api/cars`               | List available cars |
+| POST   | `/api/auth/register`      | Register new user |
+| POST   | `/api/auth/login`         | Authenticate user & get JWT |
 
 ### Available for registered users
-| Method | Endpoint             | Description |
-|--------|--------------------|------------|
-| GET    | `/rentals/{rentalId}` | Get rental by ID |
-| GET    | `/users/me`         | Get personal info |
-| GET    | `/payments/success` | Stripe success redirect |
-| GET    | `/payments/cancel`  | Stripe cancel redirect |
-| POST   | `/rentals`          | Rent a car |
-| POST   | `/rentals/return`   | Return a car |
-| POST   | `/users/me`         | Update profile info |
-| POST   | `/payments`         | Make payment |
+| Method | Endpoint                          | Description |
+|--------|-----------------------------------|------------|
+| GET    | `/api/rentals/{id}`               | Get rental by ID |
+| GET    | `/api/users/me`                   | Get personal info |
+| GET    | `/api/payments/success`           | Stripe success redirect |
+| GET    | `/api/payments/cancel`            | Stripe cancel redirect |
+| GET    | `/api/rentals`                    | Get rentals (with filters) |
+| POST   | `/api/rentals`                    | Rent a car |
+| POST   | `/api/rentals/{id}/return`        | Return a car |
+| PATCH  | `/api/users/me`                   | Update profile info |
+| POST   | `/api/payments`                   | Make payment |
 
 ### Available for admin users
-| Method | Endpoint                                  | Description |
-|--------|-------------------------------------------|------------|
-| GET    | `/cars/{id}`                              | Get car by ID |
-| GET    | `/rentals?user_id=...&is_active=...`      | Get rentals by user ID & status |
-| GET    | `/rentals/status?isActive=...`           | Get rentals by status |
-| GET    | `/payments/{userId}`                      | Get payments by user ID |
-| POST   | `/cars`                                   | Add new car |
-| PUT    | `/users/{userId}/role`                    | Update user role |
-| PATCH  | `/cars/{id}`                              | Update car info |
-| DELETE | `/cars/{id}`                              | Delete car |
+| Method | Endpoint                                      | Description |
+|--------|-----------------------------------------------|------------|
+| GET    | `/api/cars/{id}`                              | Get car by ID |
+| GET    | `/api/rentals?userId=...&isActive=...`         | Get rentals by user ID & status |
+| GET    | `/api/payments?user_id=...`                    | Get payments by user ID |
+| POST   | `/api/cars`                                   | Add new car |
+| PUT    | `/api/users/{id}/role`                        | Update user role |
+| PATCH  | `/api/cars/{id}`                              | Update car info |
+| DELETE | `/api/cars/{id}`                              | Delete car |
+
+### Health Check
+| Method | Endpoint                    | Description |
+|--------|-----------------------------|------------|
+| GET    | `/api/memory-health` | Get memory usage and health status |
 
 > **Note:** All `POST`, `PUT`, and `PATCH` endpoints require JSON body.
 

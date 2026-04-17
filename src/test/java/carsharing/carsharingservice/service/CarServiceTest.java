@@ -90,6 +90,17 @@ class CarServiceTest {
     }
 
     @Test
+    @DisplayName("Returns empty list when no cars exist")
+    void findAll_EmptyList_ReturnsEmpty() {
+        when(carRepository.findAll()).thenReturn(List.of());
+
+        List<CarResponseDto> result = carService.findAll();
+
+        assertThat(result).isEmpty();
+        verify(carRepository).findAll();
+    }
+
+    @Test
     @DisplayName("Returns car by id")
     void findById_ExistingId_ReturnsCarDto() {
         when(carRepository.findById(1L)).thenReturn(Optional.of(car));
@@ -99,6 +110,7 @@ class CarServiceTest {
 
         assertThat(result).isEqualTo(carResponseDto);
         verify(carRepository).findById(1L);
+        verify(carMapper).toDto(car);
     }
 
     @Test
