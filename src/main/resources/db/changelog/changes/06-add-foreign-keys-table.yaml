@@ -1,7 +1,12 @@
 databaseChangeLog:
   - changeSet:
       id: add-foreign-keys
-      author: your_name
+      author: Oleksii Babych
+      preConditions:
+          onFail: MARK_RAN
+          not:
+              foreignKeyConstraintExists:
+                  foreignKeyName: fk_rental_car
       changes:
         - addForeignKeyConstraint:
             baseTableName: rental
