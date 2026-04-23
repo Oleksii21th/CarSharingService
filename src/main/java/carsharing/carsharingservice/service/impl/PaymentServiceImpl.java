@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -41,8 +42,10 @@ public class PaymentServiceImpl implements PaymentService {
     private final RentalRepository rentalRepository;
     private final PaymentMapper paymentMapper;
     private final AccessManager accessManager;
-    private final String stripeSecretKey = System.getenv("STRIPE_SECRET_KEY");
     private final TelegramNotificationService telegramNotificationService;
+
+    @Value("${stripe.secret-key}")
+    private String stripeSecretKey;
 
     public PaymentServiceImpl(PaymentRepository paymentRepository,
                               RentalRepository rentalRepository,
@@ -115,12 +118,12 @@ public class PaymentServiceImpl implements PaymentService {
                 .toUriString();
 
         String successUrl = UriComponentsBuilder.fromUriString(baseUrl)
-                .path("/payments/success")
+                .path("/api/payments/success")
                 .queryParam("session_id", "{CHECKOUT_SESSION_ID}")
                 .toUriString();
 
         String cancelUrl = UriComponentsBuilder.fromUriString(baseUrl)
-                .path("/payments/cancel")
+                .path("/api/payments/cancel")
                 .queryParam("session_id", "{CHECKOUT_SESSION_ID}")
                 .toUriString();
 
