@@ -4,6 +4,7 @@ import carsharing.carsharingservice.security.JwtAuthenticationFilter;
 import carsharing.carsharingservice.service.impl.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -31,7 +32,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/cars/**")
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cars/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated())
