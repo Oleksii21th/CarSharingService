@@ -1,9 +1,10 @@
 package carsharing.carsharingservice.dto.user;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 public record UserUpdateRequestDto(
-        @Email String email,
-        String firstName,
-        String lastName
+        @NotBlank @Email String email,
+        @NotBlank String firstName,
+        @NotBlank String lastName
 ) {}

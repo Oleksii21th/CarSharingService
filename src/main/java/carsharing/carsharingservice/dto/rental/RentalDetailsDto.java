@@ -2,19 +2,20 @@ package carsharing.carsharingservice.dto.rental;
 
 import carsharing.carsharingservice.dto.car.CarResponseDto;
 import carsharing.carsharingservice.dto.user.UserResponseDto;
+import java.time.LocalDate;
 
 public class RentalDetailsDto {
     private Long id;
-    private String rentalDate;
-    private String returnDate;
-    private String actualReturnDate;
+    private LocalDate rentalDate;
+    private LocalDate returnDate;
+    private LocalDate actualReturnDate;
     private CarResponseDto car;
     private UserResponseDto user;
 
     public RentalDetailsDto(Long id,
-                            String rentalDate,
-                            String returnDate,
-                            String actualReturnDate,
+                            LocalDate rentalDate,
+                            LocalDate returnDate,
+                            LocalDate actualReturnDate,
                             CarResponseDto car,
                             UserResponseDto user) {
         this.id = id;
@@ -33,27 +34,27 @@ public class RentalDetailsDto {
         this.id = id;
     }
 
-    public String getRentalDate() {
+    public LocalDate getRentalDate() {
         return rentalDate;
     }
 
-    public void setRentalDate(String rentalDate) {
+    public void setRentalDate(LocalDate rentalDate) {
         this.rentalDate = rentalDate;
     }
 
-    public String getReturnDate() {
+    public LocalDate getReturnDate() {
         return returnDate;
     }
 
-    public void setReturnDate(String returnDate) {
+    public void setReturnDate(LocalDate returnDate) {
         this.returnDate = returnDate;
     }
 
-    public String getActualReturnDate() {
+    public LocalDate getActualReturnDate() {
         return actualReturnDate;
     }
 
-    public void setActualReturnDate(String actualReturnDate) {
+    public void setActualReturnDate(LocalDate actualReturnDate) {
         this.actualReturnDate = actualReturnDate;
     }
 

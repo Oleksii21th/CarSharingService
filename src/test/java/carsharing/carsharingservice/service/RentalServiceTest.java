@@ -32,7 +32,6 @@ import carsharing.carsharingservice.repository.UserRepository;
 import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.impl.RentalServiceImpl;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -51,8 +50,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
 class RentalServiceTest {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
     @Mock
     private RentalRepository rentalRepository;
     @Mock
@@ -88,8 +85,8 @@ class RentalServiceTest {
         car.setInventory(1);
 
         rentalRequestDto = new RentalRequestDto(
-                LocalDate.now().plusDays(1).format(FORMATTER),
-                LocalDate.now().plusDays(3).format(FORMATTER),
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(3),
                 1L);
 
         rentalResponseDto = new RentalResponseDto(
@@ -140,8 +137,8 @@ class RentalServiceTest {
     void save_CarNotFound_ThrowsException() {
         when(carRepository.findById(99L)).thenReturn(Optional.empty());
         RentalRequestDto dto = new RentalRequestDto(
-                LocalDate.now().plusDays(1).format(FORMATTER),
-                LocalDate.now().plusDays(3).format(FORMATTER),
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(3),
                 99L);
 
         assertThrows(CarNotFoundException.class, () -> rentalService.save(1L, dto));
@@ -161,8 +158,8 @@ class RentalServiceTest {
     @DisplayName("Throws InvalidRentalDateException when date is in the past")
     void save_PastDate_ThrowsException() {
         RentalRequestDto dto = new RentalRequestDto(
-                LocalDate.now().minusDays(1).format(FORMATTER),
-                LocalDate.now().plusDays(3).format(FORMATTER),
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusDays(3),
                 1L
         );
         when(carRepository.findById(1L)).thenReturn(Optional.of(car));
@@ -219,8 +216,8 @@ class RentalServiceTest {
     @DisplayName("Throws InvalidDateException when return date is before rental date")
     void save_ReturnBeforeRental_ThrowsException() {
         RentalRequestDto dto = new RentalRequestDto(
-                LocalDate.now().plusDays(5).format(FORMATTER),
-                LocalDate.now().plusDays(1).format(FORMATTER),
+                LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(1),
                 1L
         );
 
@@ -236,8 +233,8 @@ class RentalServiceTest {
     @DisplayName("Throws exception when return date is in the past")
     void save_ReturnDateInPast_ThrowsException() {
         RentalRequestDto dto = new RentalRequestDto(
-                LocalDate.now().plusDays(1).format(FORMATTER),
-                LocalDate.now().minusDays(1).format(FORMATTER),
+                LocalDate.now().plusDays(1),
+                LocalDate.now().minusDays(1),
                 1L
         );
 

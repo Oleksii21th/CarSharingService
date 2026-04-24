@@ -1,6 +1,7 @@
 package carsharing.carsharingservice.dto.car;
 
 import carsharing.carsharingservice.validation.ValidCarType;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -13,10 +14,10 @@ public class CarRequestDto {
     @NotNull
     @ValidCarType
     private String type;
-    @NotNull
+    @Min(0)
     private int inventory;
     @NotNull
-    @Min(value = 0)
+    @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal dailyFee;
 
     public String getModel() {

@@ -4,6 +4,7 @@ import carsharing.carsharingservice.dto.payment.PaymentRequestDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseFullInfoDto;
 import carsharing.carsharingservice.exception.notfound.PaymentNotFoundException;
+import carsharing.carsharingservice.exception.notfound.RentalNotFoundException;
 import carsharing.carsharingservice.mapper.PaymentMapper;
 import carsharing.carsharingservice.model.Payment;
 import carsharing.carsharingservice.model.PaymentStatus;
@@ -81,7 +82,7 @@ public class PaymentServiceImpl implements PaymentService {
                                                  Authentication authentication) {
         Long rentalId = requestDto.rentalId();
         Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new PaymentNotFoundException(rentalId));
+                .orElseThrow(() -> new RentalNotFoundException(rentalId));
 
         Long userId = rental.getUser() != null ? rental.getUser().getId() : null;
         Long targetUserId = accessManager.resolveUserId(authentication, userId);
