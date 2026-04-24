@@ -25,6 +25,7 @@ import carsharing.carsharingservice.repository.PaymentRepository;
 import carsharing.carsharingservice.repository.RentalRepository;
 import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.impl.PaymentServiceImpl;
+import carsharing.carsharingservice.service.impl.paymentstrategy.PaymentStrategyFactory;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.math.BigDecimal;
@@ -55,6 +56,10 @@ class PaymentServiceTest {
     private AccessManager accessManager;
     @Mock
     private TelegramNotificationService telegramNotificationService;
+    @Mock
+    private PaymentStrategy paymentStrategy;
+    @Mock
+    private PaymentStrategyFactory paymentStrategyFactory;
 
     @InjectMocks
     private PaymentServiceImpl paymentService;
@@ -96,11 +101,11 @@ class PaymentServiceTest {
 
         PaymentResponseDto dto = new PaymentResponseDto();
 
-        Authentication auth = mock(Authentication.class);
+        Authentication authentication = mock(Authentication.class);
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
-        when(accessManager.resolveUserId(auth, null)).thenReturn(null);
-        doNothing().when(accessManager).checkOwnerOrManager(auth, null);
+        when(accessManager.resolveUserId(authentication, null)).thenReturn(null);
+        doNothing().when(accessManager).checkOwnerOrManager(authentication, null);
 
         when(paymentRepository.findByRentalIdAndType(1L, PaymentType.PAYMENT))
                 .thenReturn(List.of(existing));
@@ -108,7 +113,7 @@ class PaymentServiceTest {
 
         PaymentRequestDto request = new PaymentRequestDto(1L, "PAYMENT");
 
-        PaymentResponseDto result = paymentService.savePaymentSession(request, auth);
+        PaymentResponseDto result = paymentService.savePaymentSession(request, authentication);
 
         assertThat(result).isEqualTo(dto);
         verify(paymentRepository, times(0)).save(any());
@@ -123,16 +128,18 @@ class PaymentServiceTest {
         Rental rental = new Rental();
         rental.setId(1L);
         rental.setCar(car);
-        rental.setRentalDate(LocalDate.now().minusDays(5));
-        rental.setReturnDate(LocalDate.now().minusDays(3));
+
+        rental.setRentalDate(LocalDate.now().minusDays(10));
+        rental.setReturnDate(LocalDate.now().minusDays(5));
+        rental.setActualReturnDate(LocalDate.now());
 
         Payment savedPayment = new Payment();
 
-        Authentication auth = mock(Authentication.class);
+        Authentication authentication = mock(Authentication.class);
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
-        when(accessManager.resolveUserId(auth, null)).thenReturn(null);
-        doNothing().when(accessManager).checkOwnerOrManager(auth, null);
+        when(accessManager.resolveUserId(authentication, null)).thenReturn(null);
+        doNothing().when(accessManager).checkOwnerOrManager(authentication, null);
 
         when(paymentRepository.findByRentalIdAndType(any(), any()))
                 .thenReturn(List.of());
@@ -145,6 +152,9 @@ class PaymentServiceTest {
         );
 
         when(paymentMapper.toDto(any())).thenReturn(responseDto);
+        when(paymentStrategyFactory.get(Mockito.any(PaymentType.class)))
+                .thenReturn(paymentStrategy);
+        when(paymentStrategy.calculateAmount(rental)).thenReturn(BigDecimal.valueOf(1));
 
         Session session = mock(Session.class);
         when(session.getId()).thenReturn("test");
@@ -154,7 +164,7 @@ class PaymentServiceTest {
                 MockedStatic<ServletUriComponentsBuilder> uriMock =
                         mockStatic(ServletUriComponentsBuilder.class)) {
 
-            mocked.when(() -> Session.create(Mockito.<SessionCreateParams>any()))
+            mocked.when(() -> Session.create(any(SessionCreateParams.class)))
                     .thenReturn(session);
 
             ServletUriComponentsBuilder builder = mock(ServletUriComponentsBuilder.class);
@@ -163,7 +173,7 @@ class PaymentServiceTest {
                     .thenReturn(builder);
 
             paymentService.savePaymentSession(
-                    new PaymentRequestDto(1L, "FINE"), auth);
+                    new PaymentRequestDto(1L, "FINE"), authentication);
         }
 
         verify(paymentRepository).save(any());
@@ -190,13 +200,16 @@ class PaymentServiceTest {
 
         when(paymentRepository.findByRentalIdAndType(any(), any()))
                 .thenReturn(List.of());
+        when(paymentStrategyFactory.get(Mockito.any(PaymentType.class)))
+                .thenReturn(paymentStrategy);
+        when(paymentStrategy.calculateAmount(rental)).thenReturn(BigDecimal.valueOf(1));
 
         try (MockedStatic<Session> mocked = mockStatic(Session.class);
                 MockedStatic<ServletUriComponentsBuilder> uriMock =
                         mockStatic(ServletUriComponentsBuilder.class)) {
 
-            mocked.when(() -> Session.create(Mockito.<SessionCreateParams>any()))
-                       .thenThrow(new com.stripe.exception.ApiException(
+            mocked.when(() -> Session.create(any(SessionCreateParams.class)))
+                    .thenThrow(new com.stripe.exception.ApiException(
                             "Stripe fail", null, null, 500, null));
 
             ServletUriComponentsBuilder builder = mock(ServletUriComponentsBuilder.class);
@@ -253,6 +266,9 @@ class PaymentServiceTest {
                 .thenReturn(List.of());
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
         when(paymentMapper.toDto(any(Payment.class))).thenReturn(responseDto);
+        when(paymentStrategyFactory.get(Mockito.any(PaymentType.class)))
+                .thenReturn(paymentStrategy);
+        when(paymentStrategy.calculateAmount(rental)).thenReturn(BigDecimal.valueOf(1));
 
         Session mockSession = mock(Session.class);
         when(mockSession.getId()).thenReturn("session123");

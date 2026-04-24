@@ -3,6 +3,8 @@ package carsharing.carsharingservice.service.impl;
 import carsharing.carsharingservice.dto.payment.PaymentRequestDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseFullInfoDto;
+import carsharing.carsharingservice.exception.notfound.FineNotApplicableException;
+import carsharing.carsharingservice.exception.notfound.PaymentAlreadyCompletedException;
 import carsharing.carsharingservice.exception.notfound.PaymentNotFoundException;
 import carsharing.carsharingservice.exception.notfound.RentalNotFoundException;
 import carsharing.carsharingservice.mapper.PaymentMapper;
@@ -15,6 +17,7 @@ import carsharing.carsharingservice.repository.RentalRepository;
 import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.PaymentService;
 import carsharing.carsharingservice.service.TelegramNotificationService;
+import carsharing.carsharingservice.service.impl.paymentstrategy.PaymentStrategyFactory;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
@@ -44,6 +47,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentMapper paymentMapper;
     private final AccessManager accessManager;
     private final TelegramNotificationService telegramNotificationService;
+    private final PaymentStrategyFactory paymentStrategyFactory;
 
     @Value("${stripe.secret-key}")
     private String stripeSecretKey;
@@ -52,12 +56,14 @@ public class PaymentServiceImpl implements PaymentService {
                               RentalRepository rentalRepository,
                               PaymentMapper paymentMapper,
                               AccessManager accessManager,
-                              TelegramNotificationService telegramNotificationService) {
+                              TelegramNotificationService telegramNotificationService,
+                              PaymentStrategyFactory paymentStrategyFactory) {
         this.paymentRepository = paymentRepository;
         this.rentalRepository = rentalRepository;
         this.paymentMapper = paymentMapper;
         this.accessManager = accessManager;
         this.telegramNotificationService = telegramNotificationService;
+        this.paymentStrategyFactory = paymentStrategyFactory;
     }
 
     @Override
@@ -90,6 +96,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         PaymentType typeOfPayment = PaymentType.valueOf(requestDto.paymentType());
 
+        validatePayment(rental, typeOfPayment);
+
         Optional<Payment> existingPayment = paymentRepository
                 .findByRentalIdAndType(rentalId, typeOfPayment)
                 .stream()
@@ -100,13 +108,9 @@ public class PaymentServiceImpl implements PaymentService {
             return paymentMapper.toDto(existingPayment.get());
         }
 
-        BigDecimal days = typeOfPayment == PAYMENT
-                ? BigDecimal.valueOf(getNumberOfDaysRent(rental))
-                : BigDecimal.valueOf(getNumberOfFineDays(rental));
-
-        BigDecimal amount = rental.getCar().getDailyFee()
-                .multiply(days)
-                .multiply(typeOfPayment == FINE ? FINE_MULTIPLIER : BigDecimal.ONE);
+        BigDecimal amount = paymentStrategyFactory
+                .get(typeOfPayment)
+                .calculateAmount(rental);
 
         Payment payment = new Payment();
         payment.setRental(rental);
@@ -137,6 +141,29 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentResponseDto responseDto = paymentMapper.toDto(saved);
         responseDto.setDescription("Go to this link to finish payment: " + session.getUrl());
         return responseDto;
+    }
+
+    private void validatePayment(Rental rental, PaymentType type) {
+        if (type == PaymentType.PAYMENT && isPaymentAlreadyPaid(rental.getId())) {
+            throw new PaymentAlreadyCompletedException(rental.getId());
+        }
+
+        if (type == PaymentType.FINE && !isRentalOverdue(rental)) {
+            throw new FineNotApplicableException(rental.getId());
+        }
+    }
+
+    private boolean isPaymentAlreadyPaid(Long rentalId) {
+        return paymentRepository.existsByRentalIdAndTypeAndStatus(
+                rentalId,
+                PaymentType.PAYMENT,
+                PaymentStatus.PAID
+        );
+    }
+
+    private boolean isRentalOverdue(Rental rental) {
+        return rental.getActualReturnDate() != null
+                && rental.getActualReturnDate().isAfter(rental.getReturnDate());
     }
 
     @Override

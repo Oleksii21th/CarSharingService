@@ -19,7 +19,7 @@ services:
     depends_on:
       - mysqldb
     restart: on-failure
-    image: posts-service
+    image: car-sharing-service-app:1.0.0
     build: .
     env_file: ./.env
     ports:
