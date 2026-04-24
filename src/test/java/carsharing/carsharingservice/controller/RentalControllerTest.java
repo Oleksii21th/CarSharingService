@@ -11,7 +11,6 @@ import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.service.TelegramNotificationService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,7 +25,6 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class RentalControllerTest extends AbstractControllerTest {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @MockitoBean
     private TelegramNotificationService telegramNotificationService;
@@ -94,8 +92,8 @@ class RentalControllerTest extends AbstractControllerTest {
         Mockito.doNothing().when(telegramNotificationService)
                 .sendRentalCreatedNotification(Mockito.any());
 
-        String rentalDate = LocalDate.now().plusDays(1).format(FORMATTER);
-        String returnDate = LocalDate.now().plusDays(3).format(FORMATTER);
+        LocalDate rentalDate = LocalDate.now().plusDays(1);
+        LocalDate returnDate = LocalDate.now().plusDays(3);
         RentalRequestDto dto = new RentalRequestDto(rentalDate, returnDate, 2L);
 
         String jsonRequest = objectMapper.writeValueAsString(dto);

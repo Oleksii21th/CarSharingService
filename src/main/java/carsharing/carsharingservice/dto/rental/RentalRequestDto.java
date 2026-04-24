@@ -1,36 +1,37 @@
 package carsharing.carsharingservice.dto.rental;
 
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 
 public class RentalRequestDto {
     @NotNull
-    private String rentalDate;
+    private LocalDate rentalDate;
     @NotNull
-    private String returnDate;
+    private LocalDate returnDate;
     @NotNull
     private Long carId;
 
-    public RentalRequestDto(String rentalDate,
-                            String returnDate,
+    public RentalRequestDto(LocalDate rentalDate,
+                            LocalDate returnDate,
                             Long carId) {
         this.rentalDate = rentalDate;
         this.returnDate = returnDate;
         this.carId = carId;
     }
 
-    public String getRentalDate() {
+    public LocalDate getRentalDate() {
         return rentalDate;
     }
 
-    public void setRentalDate(String rentalDate) {
+    public void setRentalDate(LocalDate rentalDate) {
         this.rentalDate = rentalDate;
     }
 
-    public String getReturnDate() {
+    public LocalDate getReturnDate() {
         return returnDate;
     }
 
-    public void setReturnDate(String returnDate) {
+    public void setReturnDate(LocalDate returnDate) {
         this.returnDate = returnDate;
     }
 

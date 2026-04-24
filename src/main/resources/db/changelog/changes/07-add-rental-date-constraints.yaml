@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-rental-date-constraints
+      author: your_name
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE rental
+              ADD CONSTRAINT check_return_after_rental_date
+              CHECK (return_date >= rental_date);
+
+        - sql:
+            sql: >
+              ALTER TABLE rental
+              ADD CONSTRAINT check_actual_return_after_rental_date
+              CHECK (
+                actual_return_date IS NULL
+                OR actual_return_date >= rental_date
+              );

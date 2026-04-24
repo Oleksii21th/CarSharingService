@@ -25,14 +25,12 @@ import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.RentalService;
 import carsharing.carsharingservice.service.TelegramNotificationService;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RentalServiceImpl implements RentalService {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final RentalRepository rentalRepository;
     private final UserRepository userRepository;
     private final CarRepository carRepository;
@@ -69,8 +67,8 @@ public class RentalServiceImpl implements RentalService {
         car.setInventory(car.getInventory() - 1);
 
         LocalDate currentDate = LocalDate.now();
-        LocalDate rentalDate = LocalDate.parse(rentalDto.getRentalDate(), FORMATTER);
-        LocalDate returnDate = LocalDate.parse(rentalDto.getReturnDate(), FORMATTER);
+        LocalDate rentalDate = rentalDto.getRentalDate();
+        LocalDate returnDate = rentalDto.getReturnDate();
 
         validateDates(rentalDate, returnDate, currentDate);
 
