@@ -24,5 +24,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT p FROM Payment p JOIN p.rental r JOIN r.user u WHERE u.id = :userId "
             + "AND p.status = :status")
     List<Payment> findByUserIdAndStatus(Long userId, PaymentStatus status);
+
+    boolean existsByRentalIdAndTypeAndStatus(Long rentalId, PaymentType type,
+                                             PaymentStatus status);
 }
 
