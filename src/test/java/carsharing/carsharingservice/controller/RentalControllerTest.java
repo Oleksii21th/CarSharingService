@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
-import carsharing.carsharingservice.model.User;
 import carsharing.carsharingservice.service.TelegramNotificationService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.LocalDate;
@@ -16,9 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
@@ -44,10 +40,8 @@ class RentalControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"CUSTOMER"})
+    @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void findRentalById_ValidId_ReturnsRental() throws Exception {
-        setMockCustomerUser();
-
         MvcResult result = mockMvc.perform(get("/api/rentals/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -63,10 +57,8 @@ class RentalControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"CUSTOMER"})
+    @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void findRentalsByUser_ValidParams_ReturnsList() throws Exception {
-        setMockCustomerUser();
-
         MvcResult result = mockMvc.perform(get("/api/rentals")
                         .param("userId", "1")
                         .param("isActive", "true")
@@ -85,10 +77,8 @@ class RentalControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"CUSTOMER"})
+    @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void createRental_ValidRequestDto_ReturnsCreatedRental() throws Exception {
-        setMockCustomerUser();
-
         Mockito.doNothing().when(telegramNotificationService)
                 .sendRentalCreatedNotification(Mockito.any());
 
@@ -113,10 +103,8 @@ class RentalControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"CUSTOMER"})
+    @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void returnRental_ValidId_ReturnsUpdatedRental() throws Exception {
-        setMockCustomerUser();
-
         MvcResult result = mockMvc.perform(post("/api/rentals/2/return"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -127,17 +115,5 @@ class RentalControllerTest extends AbstractControllerTest {
 
         assertThat(returned.getActualReturnDate()).isNotNull();
         assertThat(returned.getId()).isEqualTo(2L);
-    }
-
-    private void setMockCustomerUser() {
-        User mockUser = new User();
-        mockUser.setId(1L);
-
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(mockUser,
-                        "password",
-                        List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
-                )
-        );
     }
 }

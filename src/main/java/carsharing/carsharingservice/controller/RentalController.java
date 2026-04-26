@@ -4,7 +4,7 @@ import carsharing.carsharingservice.dto.rental.RentalDetailsDto;
 import carsharing.carsharingservice.dto.rental.RentalRequestDto;
 import carsharing.carsharingservice.dto.rental.RentalResponseDto;
 import carsharing.carsharingservice.dto.rental.RentalSearchParametersDto;
-import carsharing.carsharingservice.model.User;
+import carsharing.carsharingservice.security.AccessManager;
 import carsharing.carsharingservice.service.RentalService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -23,9 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/rentals")
 public class RentalController {
     private final RentalService rentalService;
+    private final AccessManager accessManager;
 
-    public RentalController(RentalService rentalService) {
+    public RentalController(RentalService rentalService,
+                            AccessManager accessManager) {
         this.rentalService = rentalService;
+        this.accessManager = accessManager;
     }
 
     @Operation(summary = "Create a new rental")
@@ -33,8 +36,8 @@ public class RentalController {
     @PostMapping
     public RentalResponseDto createRental(Authentication authentication,
                                           @RequestBody @Valid RentalRequestDto rentalDto) {
-        User user = (User) authentication.getPrincipal();
-        return rentalService.save(user.getId(), rentalDto);
+        Long targetUserId = accessManager.resolveUserId(authentication);
+        return rentalService.save(targetUserId, rentalDto);
     }
 
     @Operation(summary = "Get rentals for authenticated user")
@@ -59,7 +62,7 @@ public class RentalController {
     @PostMapping("/{id}/return")
     public RentalResponseDto returnRental(@PathVariable("id") Long rentalId,
                                           Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-        return rentalService.returnRental(user.getId(), rentalId);
+        Long targetUserId = accessManager.resolveUserId(authentication);
+        return rentalService.returnRental(targetUserId, rentalId);
     }
 }
