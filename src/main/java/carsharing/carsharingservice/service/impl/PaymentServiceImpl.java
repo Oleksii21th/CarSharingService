@@ -24,7 +24,6 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,9 +36,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
     private static final PaymentStatus DEFAULT_PAYMENT_STATUS = PaymentStatus.PENDING;
-    private static final BigDecimal FINE_MULTIPLIER = BigDecimal.valueOf(1.5);
-    private static final PaymentType PAYMENT = PaymentType.PAYMENT;
-    private static final PaymentType FINE = PaymentType.FINE;
     private static final String STRIPE_RETURN_STATUS_PAID = "paid";
 
     private final PaymentRepository paymentRepository;
@@ -189,21 +185,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         return paymentMapper.toFullInfoDto(payment);
-    }
-
-    private int getNumberOfDaysRent(Rental rental) {
-        LocalDate start = rental.getRentalDate();
-        LocalDate end = rental.getActualReturnDate() != null
-                ? rental.getActualReturnDate() : LocalDate.now();
-        return (int) Math.max(1, java.time.temporal.ChronoUnit.DAYS.between(start, end));
-    }
-
-    private int getNumberOfFineDays(Rental rental) {
-        LocalDate scheduledReturn = rental.getReturnDate();
-        LocalDate actualReturn = rental.getActualReturnDate() != null
-                ? rental.getActualReturnDate() : LocalDate.now();
-        return (int) Math.max(0, java.time.temporal.ChronoUnit.DAYS.between(
-                scheduledReturn, actualReturn));
     }
 
     private Session createSession(BigDecimal amount,
