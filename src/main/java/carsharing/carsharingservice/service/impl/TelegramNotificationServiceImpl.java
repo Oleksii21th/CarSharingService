@@ -21,11 +21,11 @@ public class TelegramNotificationServiceImpl implements TelegramNotificationServ
     @Override
     public void sendRentalCreatedNotification(Rental rental) {
         String message = String.format(
-                "Nowy wynajem utworzony!\n\n"
-                        + "Użytkownik: %s %s (%s)\n"
-                        + "Samochód: %s %s (%s)\n"
-                        + "Data wynajmu: %s\n"
-                        + "Data zwrotu: %s",
+                "New rental created!\n\n"
+                        + "User: %s %s (%s)\n"
+                        + "Car: %s %s (%s)\n"
+                        + "Rental date: %s\n"
+                        + "Return date: %s",
                 rental.getUser().getFirstName(),
                 rental.getUser().getLastName(),
                 rental.getUser().getUsername(),
@@ -42,11 +42,11 @@ public class TelegramNotificationServiceImpl implements TelegramNotificationServ
     @Override
     public void sendOverdueRentalNotification(Rental rental) {
         String message = String.format(
-                "*Przeterminowany wynajem!*\n\n"
-                        + "Użytkownik: %s %s (%s)\n"
-                        + "Samochód: %s %s (%s)\n"
-                        + "Data zwrotu: %s\n"
-                        + "Obecna data: %s",
+                "*Overdue rental!*\n\n"
+                        + "User: %s %s (%s)\n"
+                        + "Car: %s %s (%s)\n"
+                        + "Return date: %s\n"
+                        + "Current date: %s",
                 rental.getUser().getFirstName(),
                 rental.getUser().getLastName(),
                 rental.getUser().getUsername(),
@@ -63,11 +63,11 @@ public class TelegramNotificationServiceImpl implements TelegramNotificationServ
     @Override
     public void sendPaymentSuccessNotification(Payment payment) {
         String message = String.format(
-                "Płatność zakończona sukcesem!\n\n"
-                        + "Użytkownik: %s %s (%s)\n"
-                        + "Kwota: %s\n"
-                        + "ID wynajmu: %d\n"
-                        + "Samochód: %s %s",
+                "Payment completed successfully!\n\n"
+                        + "User: %s %s (%s)\n"
+                        + "Amount: %s\n"
+                        + "Rental ID: %d\n"
+                        + "Car: %s %s",
                 payment.getRental().getUser().getFirstName(),
                 payment.getRental().getUser().getLastName(),
                 payment.getRental().getUser().getUsername(),
@@ -82,7 +82,7 @@ public class TelegramNotificationServiceImpl implements TelegramNotificationServ
 
     @Override
     public void sendNoOverduesNotification() {
-        String message = "Brak przeterminowanych wynajmów dzisiaj!";
+        String message = "No overdue rentals today!";
         sendMessage(message);
     }
 
