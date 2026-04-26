@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: add-rental-date-constraints
-      author: your_name
+      author: Oleksii Babych
       changes:
         - sql:
             sql: >
