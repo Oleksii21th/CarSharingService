@@ -62,7 +62,7 @@ class RentalServiceTest {
     private PaymentRepository paymentRepository;
     @Mock
     private TelegramNotificationService telegramNotificationService;
-    @Spy
+    @Mock
     private AccessManager accessManager;
 
     @InjectMocks
@@ -252,15 +252,6 @@ class RentalServiceTest {
 
         Authentication authentication = mock(Authentication.class);
 
-        SimpleGrantedAuthority simpleGrantedAuthority =
-                new SimpleGrantedAuthority("ROLE_CUSTOMER");
-        Collection<SimpleGrantedAuthority> authCollection =
-                Collections.singleton(simpleGrantedAuthority);
-
-        when(authentication.getPrincipal()).thenReturn(user);
-        when(authentication.getAuthorities())
-                .thenReturn((Collection) authCollection);
-
         when(rentalRepository.findByUserIdAndIsActive(1L, true))
                 .thenReturn(List.of(rental));
 
@@ -277,18 +268,6 @@ class RentalServiceTest {
     @DisplayName("Manager can fetch any user's rentals")
     void findRentalsByUser_Manager_ReturnsAnyUserRentals() {
         Authentication authentication = mock(Authentication.class);
-
-        User manager = new User();
-        manager.setId(5L);
-
-        SimpleGrantedAuthority simpleGrantedAuthority =
-                new SimpleGrantedAuthority("ROLE_MANAGER");
-        Collection<SimpleGrantedAuthority> authCollection =
-                Collections.singleton(simpleGrantedAuthority);
-
-        when(authentication.getPrincipal()).thenReturn(manager);
-        when(authentication.getAuthorities())
-                .thenReturn((Collection) authCollection);
 
         when(rentalRepository.findByUserIdAndIsActive(5L, true))
                 .thenReturn(List.of(rental));
@@ -308,18 +287,6 @@ class RentalServiceTest {
     @DisplayName("Manager with userId fetches specific user rentals")
     void findRentalsByUser_ManagerWithUserId_OK() {
         Authentication authentication = mock(Authentication.class);
-
-        User manager = new User();
-        manager.setId(11L);
-
-        SimpleGrantedAuthority simpleGrantedAuthority =
-                new SimpleGrantedAuthority("ROLE_MANAGER");
-        Collection<SimpleGrantedAuthority> authCollection =
-                Collections.singleton(simpleGrantedAuthority);
-
-        when(authentication.getAuthorities())
-                .thenReturn((Collection) authCollection);
-        when(authentication.getPrincipal()).thenReturn(manager);
 
         RentalSearchParametersDto params =
                 new RentalSearchParametersDto(1L, true);
@@ -365,32 +332,21 @@ class RentalServiceTest {
     @Test
     @DisplayName("Throws AccessDeniedException when user is not owner")
     void findRentalById_AccessDenied_ThrowsException() {
-        Authentication auth = mock(Authentication.class);
+        Authentication authentication = mock(Authentication.class);
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
 
-        doThrow(new AccessDeniedException("denied"))
-                .when(accessManager).checkOwnerOrManager(auth, 1L);
+        doThrow(new AccessDeniedException("Access denied"))
+                .when(accessManager)
+                .checkOwnerOrManager(any(), any());
 
         assertThrows(AccessDeniedException.class,
-                () -> rentalService.findRentalById(1L, auth));
+                () -> rentalService.findRentalById(1L, authentication));
     }
-
     @Test
     @DisplayName("Finds rental by id for owner")
     void findRentalById_Owner_ReturnsDto() {
         Authentication authentication = mock(Authentication.class);
-
-        rental.setUser(user);
-
-        SimpleGrantedAuthority simpleGrantedAuthority =
-                new SimpleGrantedAuthority("ROLE_CUSTOMER");
-        Collection<SimpleGrantedAuthority> authCollection =
-                Collections.singleton(simpleGrantedAuthority);
-
-        when(authentication.getPrincipal()).thenReturn(user);
-        when(authentication.getAuthorities())
-                .thenReturn((Collection) authCollection);
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
         when(rentalMapper.toDetailsDto(rental)).thenReturn(rentalDetailsDto);
@@ -406,21 +362,11 @@ class RentalServiceTest {
     void findRentalById_NotOwner_ThrowsException() {
         Authentication authentication = mock(Authentication.class);
 
-        User otherUser = new User();
-        otherUser.setId(2L);
-
-        rental.setUser(user);
-
-        SimpleGrantedAuthority simpleGrantedAuthority =
-                new SimpleGrantedAuthority("ROLE_CUSTOMER");
-        Collection<SimpleGrantedAuthority> authCollection =
-                Collections.singleton(simpleGrantedAuthority);
-
-        when(authentication.getPrincipal()).thenReturn(otherUser);
-        when(authentication.getAuthorities())
-                .thenReturn((Collection) authCollection);
-
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
+
+        doThrow(new AccessDeniedException("Access denied"))
+                .when(accessManager)
+                .checkOwnerOrManager(any(), any());
 
         assertThrows(AccessDeniedException.class,
                 () -> rentalService.findRentalById(1L, authentication));
@@ -437,16 +383,10 @@ class RentalServiceTest {
                 () -> rentalService.findRentalById(99L, authentication));
     }
 
+    @Test
     @DisplayName("Manager can access any rental by id")
     void findRentalById_ManagerAccess_OK() {
         Authentication authentication = mock(Authentication.class);
-        SimpleGrantedAuthority simpleGrantedAuthority =
-                new SimpleGrantedAuthority("ROLE_MANAGER");
-        Collection<SimpleGrantedAuthority> authCollection =
-                Collections.singleton(simpleGrantedAuthority);
-
-        when(authentication.getAuthorities())
-                .thenReturn((Collection) authCollection);
 
         User other = new User();
         other.setId(999L);
