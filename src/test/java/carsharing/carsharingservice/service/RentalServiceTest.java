@@ -42,7 +42,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -343,6 +342,7 @@ class RentalServiceTest {
         assertThrows(AccessDeniedException.class,
                 () -> rentalService.findRentalById(1L, authentication));
     }
+
     @Test
     @DisplayName("Finds rental by id for owner")
     void findRentalById_Owner_ReturnsDto() {
@@ -386,11 +386,11 @@ class RentalServiceTest {
     @Test
     @DisplayName("Manager can access any rental by id")
     void findRentalById_ManagerAccess_OK() {
-        Authentication authentication = mock(Authentication.class);
-
         User other = new User();
         other.setId(999L);
         rental.setUser(other);
+
+        Authentication authentication = mock(Authentication.class);
 
         when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
         when(rentalMapper.toDetailsDto(rental)).thenReturn(rentalDetailsDto);
