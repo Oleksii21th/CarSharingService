@@ -27,6 +27,10 @@ public class AccessManager {
             return resourceUserId;
         }
 
+        return resolveUserId(authentication);
+    }
+
+    public Long resolveUserId(Authentication authentication) {
         return isManager(authentication) ? null : getCurrentUserId(authentication);
     }
 

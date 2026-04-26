@@ -57,10 +57,8 @@ class PaymentControllerTest extends AbstractControllerTest {
     private PaymentRepository paymentRepository;
 
     @Test
-    @WithMockUser(roles = {"CUSTOMER"})
+    @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void findAllPayments_UserHasPayments_ReturnsPaymentsList() throws Exception {
-        setMockCustomerUser();
-
         MvcResult result = mockMvc.perform(get("/api/payments")
                         .param("user_id", "1")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -78,10 +76,8 @@ class PaymentControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"CUSTOMER"})
+    @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void createPayment_ValidRequestDto_ReturnsCreatedPayment() throws Exception {
-        setMockCustomerUser();
-
         Mockito.doNothing().when(telegramNotificationService)
                 .sendPaymentSuccessNotification(Mockito.any());
 
@@ -103,7 +99,7 @@ class PaymentControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"CUSTOMER"})
+    @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void paymentSuccess_ValidSessionId_ReturnsFullInfo() throws Exception {
         Mockito.doNothing().when(telegramNotificationService)
                 .sendPaymentSuccessNotification(Mockito.any());
@@ -135,7 +131,7 @@ class PaymentControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"CUSTOMER"})
+    @WithMockUser(username = "user@test.com", roles = {"CUSTOMER"})
     void paymentCancel_ValidSessionId_ReturnsInfoMessage() throws Exception {
         MvcResult result = mockMvc.perform(get("/api/payments/cancel")
                         .param("session_id", "session1")
@@ -147,17 +143,5 @@ class PaymentControllerTest extends AbstractControllerTest {
 
         assertThat(response).contains("You can complete this payment later, "
                 + "using the same session.");
-    }
-
-    private void setMockCustomerUser() {
-        User mockUser = new User();
-        mockUser.setId(1L);
-
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(mockUser,
-                        "password",
-                        List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
-                )
-        );
     }
 }
