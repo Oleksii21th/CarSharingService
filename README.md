@@ -200,7 +200,7 @@ System uses a relational database with four main entities: User, Car, Rental, an
 
 
 ## API Documentation
-http://localhost:8080/swagger-ui/index.html
+<http://localhost:8081/swagger-ui/index.html>
 
 
 ## Postman Examples
@@ -214,10 +214,10 @@ http://localhost:8080/swagger-ui/index.html
 ---
 
 ## Video Representation
-https://youtu.be/p1TUqOvCCKE
+<https://youtu.be/p1TUqOvCCKE>
 
 ## Contact
 
 - **Developer**: Oleksii Babych
 - **Email**:   obabych1@stu.vistula.edu.pl
-- **GitHub**: https://github.com/Oleksii21th/CarSharingService
+- **GitHub**: <https://github.com/Oleksii21th/CarSharingService>
