@@ -3,6 +3,7 @@ package carsharing.carsharingservice.service.impl;
 import carsharing.carsharingservice.dto.payment.PaymentRequestDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseDto;
 import carsharing.carsharingservice.dto.payment.PaymentResponseFullInfoDto;
+import carsharing.carsharingservice.exception.badrequest.InvalidPaymentTypeException;
 import carsharing.carsharingservice.exception.notfound.FineNotApplicableException;
 import carsharing.carsharingservice.exception.notfound.PaymentAlreadyCompletedException;
 import carsharing.carsharingservice.exception.notfound.PaymentNotFoundException;
@@ -90,7 +91,12 @@ public class PaymentServiceImpl implements PaymentService {
         Long targetUserId = accessManager.resolveUserId(authentication, userId);
         accessManager.checkOwnerOrManager(authentication, targetUserId);
 
-        PaymentType typeOfPayment = PaymentType.valueOf(requestDto.paymentType());
+        PaymentType typeOfPayment;
+        try {
+            typeOfPayment = PaymentType.valueOf(requestDto.paymentType());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidPaymentTypeException(requestDto.paymentType());
+        }
 
         validatePayment(rental, typeOfPayment);
 
