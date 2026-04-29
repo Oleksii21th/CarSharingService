@@ -134,7 +134,7 @@ public class RentalServiceImpl implements RentalService {
         } else {
             Long targetUserId = userId != null
                     ? userId
-                    : ((User) authentication.getPrincipal()).getId();
+                    : accessManager.getCurrentUserId(authentication);
 
             rentals = rentalRepository.findByUserIdAndIsActive(targetUserId, paramsDto.isActive());
         }
