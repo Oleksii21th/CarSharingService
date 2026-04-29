@@ -37,15 +37,16 @@ public class AccessManager {
     public void checkOwnerOrManager(Authentication authentication, Long resourceUserId) {
         Long currentUserId = getCurrentUserId(authentication);
 
-        boolean isOwner = resourceUserId != null && resourceUserId.equals(currentUserId);
         boolean isManager = isManager(authentication);
+        boolean isOwner = (resourceUserId == null && !isManager)
+                || (resourceUserId != null && resourceUserId.equals(currentUserId));
 
         if (!isOwner && !isManager) {
             throw new AccessDeniedException("Access denied");
         }
     }
 
-    private Long getCurrentUserId(Authentication authentication) {
+    public Long getCurrentUserId(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(() ->
                         new UsernameNotFoundException("User not found with email: " + email));
