@@ -46,11 +46,11 @@ public class CarRequestDto {
         this.type = type;
     }
 
-    public int getInventory() {
+    public Integer getInventory() {
         return inventory;
     }
 
-    public void setInventory(int inventory) {
+    public void setInventory(Integer inventory) {
         this.inventory = inventory;
     }
 
