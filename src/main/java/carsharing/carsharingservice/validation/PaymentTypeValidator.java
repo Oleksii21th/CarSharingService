@@ -1,6 +1,5 @@
 package carsharing.carsharingservice.validation;
 
-import carsharing.carsharingservice.exception.badrequest.InvalidPaymentTypeException;
 import carsharing.carsharingservice.model.PaymentType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -12,7 +11,7 @@ public class PaymentTypeValidator implements ConstraintValidator<ValidPaymentTyp
             PaymentType.valueOf(value);
             return true;
         } catch (IllegalArgumentException e) {
-            throw new InvalidPaymentTypeException(value);
+            return false;
         }
     }
 }

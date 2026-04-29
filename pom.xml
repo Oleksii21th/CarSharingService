@@ -26,9 +26,6 @@
         <docker.compose.version>3.4.2</docker.compose.version>
         <springdoc.version>2.2.0</springdoc.version>
         <maven.checkstyle.plugin.version>3.3.0</maven.checkstyle.plugin.version>
-        <maven.checkstyle.plugin.configLocation>
-            checkstyle.xml
-        </maven.checkstyle.plugin.configLocation>
     </properties>
 
     <dependencies>
@@ -118,6 +115,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-docker-compose</artifactId>
             <version>${docker.compose.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
