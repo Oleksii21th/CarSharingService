@@ -163,9 +163,14 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponseFullInfoDto updatePaymentStatus(String sessionId) {
+    public PaymentResponseFullInfoDto updatePaymentStatus(String sessionId,
+                                                          Authentication authentication) {
         Payment payment = paymentRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new PaymentNotFoundException(sessionId));
+
+        Long userId = payment.getRental().getUser().getId();
+        Long targetUserId = accessManager.resolveUserId(authentication, userId);
+        accessManager.checkOwnerOrManager(authentication, targetUserId);
 
         Stripe.apiKey = stripeSecretKey;
 

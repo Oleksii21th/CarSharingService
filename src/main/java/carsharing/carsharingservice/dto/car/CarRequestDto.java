@@ -3,19 +3,21 @@ package carsharing.carsharingservice.dto.car;
 import carsharing.carsharingservice.validation.ValidCarType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public class CarRequestDto {
-    @NotNull
+    @NotBlank
     private String model;
-    @NotNull
+    @NotBlank
     private String brand;
-    @NotNull
+    @NotBlank
     @ValidCarType
     private String type;
+    @NotNull
     @Min(0)
-    private int inventory;
+    private Integer inventory;
     @NotNull
     @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal dailyFee;
@@ -44,11 +46,11 @@ public class CarRequestDto {
         this.type = type;
     }
 
-    public int getInventory() {
+    public Integer getInventory() {
         return inventory;
     }
 
-    public void setInventory(int inventory) {
+    public void setInventory(Integer inventory) {
         this.inventory = inventory;
     }
 

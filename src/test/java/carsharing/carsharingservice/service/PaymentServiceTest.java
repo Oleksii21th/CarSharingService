@@ -305,8 +305,12 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Updates payment status and returns full DTO when session exists")
     void updatePaymentStatus_ValidSessionId_UpdatesAndReturnsDto() {
+        User user = new User();
+        user.setId(1L);
+
         Rental rental = new Rental();
         rental.setId(1L);
+        rental.setUser(user);
 
         Payment payment = new Payment();
         payment.setId(1L);
@@ -318,12 +322,15 @@ class PaymentServiceTest {
                 1L, 1L, "FINE", BigDecimal.valueOf(1), null
         );
 
+        Authentication mockAuth = Mockito.mock(Authentication.class);
+
         doNothing().when(telegramNotificationService)
                 .sendPaymentSuccessNotification(Mockito.any());
 
         when(paymentRepository.findBySessionId("session1")).thenReturn(Optional.of(payment));
         when(paymentRepository.save(payment)).thenReturn(payment);
         when(paymentMapper.toFullInfoDto(payment)).thenReturn(fullDto);
+        when(accessManager.resolveUserId(mockAuth, 1L)).thenReturn(1L);
 
         Session mockSession = mock(Session.class);
         when(mockSession.getPaymentStatus()).thenReturn("paid");
@@ -331,7 +338,8 @@ class PaymentServiceTest {
         try (MockedStatic<Session> mockedStatic = Mockito.mockStatic(Session.class)) {
             mockedStatic.when(() -> Session.retrieve("session1")).thenReturn(mockSession);
 
-            PaymentResponseFullInfoDto result = paymentService.updatePaymentStatus("session1");
+            PaymentResponseFullInfoDto result =
+                    paymentService.updatePaymentStatus("session1", mockAuth);
 
             assertThat(result.getType()).isEqualTo("FINE");
             verify(paymentRepository).save(payment);
@@ -341,22 +349,31 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Throws IllegalStateException when Stripe payment status is not paid")
     void updatePaymentStatus_NotPaid_ThrowsException() {
+        User user = new User();
+        user.setId(1L);
+
+        Rental rental = new Rental();
+        rental.setUser(user);
+
         Payment payment = new Payment();
         payment.setSessionId("test");
+        payment.setRental(rental);
+
+        Authentication mockAuth = Mockito.mock(Authentication.class);
 
         when(paymentRepository.findBySessionId("test"))
                 .thenReturn(Optional.of(payment));
+        when(accessManager.resolveUserId(mockAuth, 1L)).thenReturn(1L);
 
         Session stripeSession = mock(Session.class);
         when(stripeSession.getPaymentStatus()).thenReturn("unpaid");
 
         try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
-
             stripe.when(() -> Session.retrieve("test"))
                     .thenReturn(stripeSession);
 
             assertThatThrownBy(() ->
-                    paymentService.updatePaymentStatus("test"))
+                    paymentService.updatePaymentStatus("test", mockAuth))
                     .isInstanceOf(IllegalStateException.class);
         }
     }
@@ -364,26 +381,34 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Sends telegram notification when payment status is successfully updated to paid")
     void updatePaymentStatus_Success_SendsTelegramNotification() {
+        User user = new User();
+        user.setId(1L);
+
+        Rental rental = new Rental();
+        rental.setUser(user);
+
         Payment payment = new Payment();
         payment.setSessionId("test");
+        payment.setRental(rental);
 
         PaymentResponseFullInfoDto dto =
                 mock(PaymentResponseFullInfoDto.class);
+        Authentication mockAuth = Mockito.mock(Authentication.class);
 
         when(paymentRepository.findBySessionId("test"))
                 .thenReturn(Optional.of(payment));
 
         when(paymentMapper.toFullInfoDto(payment)).thenReturn(dto);
+        when(accessManager.resolveUserId(mockAuth, 1L)).thenReturn(1L);
 
         Session stripeSession = mock(Session.class);
         when(stripeSession.getPaymentStatus()).thenReturn("paid");
 
         try (MockedStatic<Session> stripe = mockStatic(Session.class)) {
-
             stripe.when(() -> Session.retrieve("test"))
                     .thenReturn(stripeSession);
 
-            paymentService.updatePaymentStatus("test");
+            paymentService.updatePaymentStatus("test", mockAuth);
 
             verify(telegramNotificationService)
                     .sendPaymentSuccessNotification(payment);
@@ -393,9 +418,12 @@ class PaymentServiceTest {
     @Test
     @DisplayName("Throws exception when no payment is found by sessionId")
     void updatePaymentStatus_InvalidSessionId_ThrowsException() {
-        when(paymentRepository.findBySessionId("noId")).thenReturn(Optional.empty());
+        Authentication mockAuth = Mockito.mock(Authentication.class);
 
-        assertThatThrownBy(() -> paymentService.updatePaymentStatus("noId"))
+        when(paymentRepository.findBySessionId("noId"))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> paymentService.updatePaymentStatus("noId", mockAuth))
                 .isInstanceOf(PaymentNotFoundException.class);
     }
 }

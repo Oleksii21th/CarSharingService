@@ -13,5 +13,6 @@ public interface PaymentService {
     PaymentResponseDto savePaymentSession(PaymentRequestDto requestDto,
                                           Authentication authentication);
 
-    PaymentResponseFullInfoDto updatePaymentStatus(String sessionId);
+    PaymentResponseFullInfoDto updatePaymentStatus(String sessionId,
+                                                   Authentication authentication);
 }

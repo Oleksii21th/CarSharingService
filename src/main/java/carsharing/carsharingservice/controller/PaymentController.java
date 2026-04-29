@@ -45,8 +45,9 @@ public class PaymentController {
     @Operation(summary = "Mark payment as successful")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     @GetMapping("/success")
-    public PaymentResponseFullInfoDto paymentSuccess(@RequestParam("session_id") String sessionId) {
-        return paymentService.updatePaymentStatus(sessionId);
+    public PaymentResponseFullInfoDto paymentSuccess(@RequestParam("session_id") String sessionId,
+                                                     Authentication authentication) {
+        return paymentService.updatePaymentStatus(sessionId, authentication);
     }
 
     @Operation(summary = "Cancel a payment")
