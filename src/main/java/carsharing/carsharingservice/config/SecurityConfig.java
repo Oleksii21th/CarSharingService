@@ -32,6 +32,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/index.html")
+                        .permitAll()
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cars/**")
